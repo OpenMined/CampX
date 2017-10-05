@@ -1,6 +1,6 @@
 # CampX
 
-Secret Agent Testing Facility
+Secret Agent Training Facility
 
 # Details
 
