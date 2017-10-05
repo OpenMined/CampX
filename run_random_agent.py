@@ -8,13 +8,16 @@ max_num_episodes = 10
 max_num_steps = 100
 
 # can set a random seed for consistency in agent AND environment
-random_seed = 42
-# set a random seed
-np.random.seed(random_seed)
+random_seed = None
+
+if random_seed is not None:
+    np.random.seed(random_seed)
 
 # initialize the environment
-env = EnvCatcher(grid_size=10, env_type='episodic', verbose=True, 
+env = EnvCatcher(grid_size=10, env_type='episodic', verbose=False, 
                  max_num_steps=100, random_seed=random_seed)
+
+total_reward_by_episode = []
 
 for i_episode in range(max_num_episodes):
 
@@ -36,6 +39,12 @@ for i_episode in range(max_num_episodes):
 
         # environment will provide a done flag, learning should handle it
         if done:
-            print("ep: {}, steps: {}, r_total: {}".format(i_episode, t+1, 
+            print("ep: {}, steps: {}, ep_reward_total: {}".format(i_episode, t+1, 
                   ep_reward))
+            total_reward_by_episode.append(ep_reward)
             break
+
+# print details of experiment
+print('episode rewards', total_reward_by_episode)
+print('sum of episode rewards', np.sum(total_reward_by_episode))
+print('average episodic reward', np.sum(total_reward_by_episode)/float(len(total_reward_by_episode)))
