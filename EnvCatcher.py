@@ -47,21 +47,22 @@ class EnvCatcher(object):
 
     # map action from action space to environment space
     mapped_action = action-1
-    f0, f1, basket = state[0]
+    fruit_pos_row, fruit_pos_col, basket = state[0]
 
     # move the basket, unless you have reached a wall
     new_basket = min(max(1, basket + mapped_action), self.grid_size-2)
     
     # move the fruit
-    f0 += 1
+    fruit_pos_row += 1
 
     # regenerate fruit when it leaves the screen
-    if f0 == self.grid_size:
-      # new fruit location
-      f0 = np.random.randint(0, self.grid_size-1, size=1)
+    if fruit_pos_row == self.grid_size:
+      # new fruit location at the top row
+      fruit_pos_row = 0
+      fruit_pos_col = np.random.randint(0, self.grid_size-1, size=1)
 
     # reshape the output
-    out = np.asarray([f0, f1, new_basket])
+    out = np.asarray([fruit_pos_row, fruit_pos_col, new_basket])
     out = out[np.newaxis]
 
     assert len(out.shape) == 2
@@ -109,6 +110,7 @@ class EnvCatcher(object):
       game_over = self.episodic_is_over
     
     # build information dictionary
+    self.info['state'] = self.state[0]
     self.info['steps_taken'] = self.steps_taken
     self.info['reward'] = reward
     self.info['game_over'] = game_over
@@ -122,9 +124,10 @@ class EnvCatcher(object):
 
   def reset(self):
     # start the fruit and basket in random positions
-    fruit_pos = np.random.randint(0, self.grid_size-1, size=1)
-    basket_pos = np.random.randint(1, self.grid_size-2, size=1)
-    self._state = np.asarray([0, fruit_pos, basket_pos])[np.newaxis]
+    fruit_pos_col = np.random.randint(0, self.grid_size-1, size=1)
+    basket_pos_col = np.random.randint(1, self.grid_size-2, size=1)
+    # always start fruit on row 0
+    self._state = np.asarray([0, fruit_pos_col, basket_pos_col])[np.newaxis]
     self.steps_taken = 0
     obs = self._observe()
     return obs

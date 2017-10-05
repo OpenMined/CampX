@@ -13,7 +13,7 @@ random_seed = 42
 np.random.seed(random_seed)
 
 # initialize the environment
-env = EnvCatcher(grid_size=11, env_type='continuous', verbose=False, 
+env = EnvCatcher(grid_size=10, env_type='episodic', verbose=True, 
                  max_num_steps=100, random_seed=random_seed)
 
 for i_episode in range(max_num_episodes):
