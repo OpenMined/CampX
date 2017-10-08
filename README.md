@@ -4,12 +4,17 @@ Secret Agent Training Facility
 
 # Details
 
-Basic implementation of a random agent and the catcher environment.
+## EnvCatcher 
+Implementation of the Catch/Catcher environment [[1]](#references)
 
-Can instantiate the environment as either 'continuous' or 'episodic'.
+Note: can instantiate the environment as either 'continuous' or 'episodic'.
 
 # Run
 
 ```python
 python run_random_agent.py
 ```
+
+# References
+
+[1] - Mnih, Volodymyr, Nicolas Heess, and Alex Graves. "Recurrent models of visual attention." Advances in neural information processing systems. 2014.
