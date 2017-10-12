@@ -14,8 +14,8 @@ class EnvCatcher(object):
   Verbose will print out perstep information from dictionary info.
   """
   def __init__(self, 
-               grid_size=10,
-               env_type='continuous',
+               grid_size=24,
+               env_type='episodic',
                verbose=False,
                max_num_steps=100,
                random_seed=None):
@@ -29,6 +29,9 @@ class EnvCatcher(object):
       # also keep track of the steps taken
       self.step_limit = max_num_steps
       self.steps_taken = 0
+
+      # set the width of the paddle
+      self.paddle_width = 2
 
       self.env_type = env_type 
       self.verbose = verbose
@@ -50,7 +53,7 @@ class EnvCatcher(object):
     fruit_pos_row, fruit_pos_col, basket = state[0]
 
     # move the basket, unless you have reached a wall
-    new_basket = min(max(1, basket + mapped_action), self.grid_size-2)
+    new_basket = min(max(1, basket + mapped_action), (self.grid_size-self.paddle_width))
     
     # move the fruit
     fruit_pos_row += 1
@@ -91,11 +94,7 @@ class EnvCatcher(object):
         return 0
 
   def _observe(self):
-    canvas = self._draw_state()
-    # TODO(korymath): may need to reshape for visualization
-    # out = canvas.reshape(1, 1, self.grid_size, self.grid_size)
-    out = canvas
-    return out
+    return self._draw_state()
 
   def step(self, action):
     self.steps_taken += 1
@@ -110,8 +109,9 @@ class EnvCatcher(object):
       game_over = self.episodic_is_over
     
     # build information dictionary
-    self.info['state'] = self.state[0]
+    self.info['s'] = self.state[0]
     self.info['steps_taken'] = self.steps_taken
+    self.info['a'] = action-1
     self.info['reward'] = reward
     self.info['game_over'] = game_over
 
@@ -125,7 +125,9 @@ class EnvCatcher(object):
   def reset(self):
     # start the fruit and basket in random positions
     fruit_pos_col = np.random.randint(0, self.grid_size-1, size=1)
-    basket_pos_col = np.random.randint(1, self.grid_size-2, size=1)
+    # random position for the left hand side of the basket 
+    basket_pos_col = np.random.randint(0, self.grid_size-self.paddle_width, size=1)
+
     # always start fruit on row 0
     self._state = np.asarray([0, fruit_pos_col, basket_pos_col])[np.newaxis]
     self.steps_taken = 0

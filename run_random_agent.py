@@ -4,7 +4,7 @@ import numpy as np
 from EnvCatcher import EnvCatcher
 
 # set experimental parameters
-max_num_episodes = 10
+max_num_episodes = 10000
 max_num_steps = 100
 
 # can set a random seed for consistency in agent AND environment
@@ -14,7 +14,7 @@ if random_seed is not None:
     np.random.seed(random_seed)
 
 # initialize the environment
-env = EnvCatcher(grid_size=10, env_type='episodic', verbose=False, 
+env = EnvCatcher(grid_size=24, env_type='episodic', verbose=False, 
                  max_num_steps=100, random_seed=random_seed)
 
 total_reward_by_episode = []
@@ -45,6 +45,6 @@ for i_episode in range(max_num_episodes):
             break
 
 # print details of experiment
-print('episode rewards', total_reward_by_episode)
-print('sum of episode rewards', np.sum(total_reward_by_episode))
+# print('episode rewards', total_reward_by_episode)
+# print('sum of episode rewards', np.sum(total_reward_by_episode))
 print('average episodic reward', np.sum(total_reward_by_episode)/float(len(total_reward_by_episode)))
