@@ -4,7 +4,7 @@ import numpy as np
 from EnvCatcher import EnvCatcher
 
 # set experimental parameters
-max_num_episodes = 10000
+max_num_episodes = 1000
 max_num_steps = 100
 
 # can set a random seed for consistency in agent AND environment
@@ -39,7 +39,8 @@ for i_episode in range(max_num_episodes):
 
         # environment will provide a done flag, learning should handle it
         if done:
-            print("ep: {}, steps: {}, ep_reward_total: {}".format(i_episode, t+1, 
+            if i_episode % 100 == 0:
+                print("ep: {}, steps: {}, ep_reward_total: {}".format(i_episode, t+1, 
                   ep_reward))
             total_reward_by_episode.append(ep_reward)
             break
