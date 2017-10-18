@@ -1,7 +1,15 @@
 """ Reinforcement Learning Run Loop""" 
 
+import os
 import logging
 import numpy as np
+
+
+def save_episode_returns(filename, episode_returns):
+  output_dir = 'output'
+  if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+  np.savetxt(os.path.join(output_dir, filename), episode_returns, delimiter=",")
 
 
 def print_statistics(episode_returns, episode, agent, report_every_n=100):
