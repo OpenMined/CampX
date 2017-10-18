@@ -14,7 +14,7 @@ if random_seed is not None:
     np.random.seed(random_seed)
 
 # initialize the environment
-env = EnvCatcher(grid_size=24, env_type='episodic', verbose=False, 
+env = EnvCatcher(grid_size=24, env_type='episodic', verbose=True, 
                  max_num_steps=100, random_seed=random_seed)
 
 total_reward_by_episode = []

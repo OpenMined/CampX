@@ -76,8 +76,10 @@ class EnvCatcher(object):
     state = self.state[0]
     canvas = np.zeros(im_size)
     # index is [row, col]
-    canvas[state[0], state[1]] = 1           # draw fruit
-    canvas[-1, state[2]-1:state[2] + 2] = 1  # draw basket
+    # draw fruit
+    canvas[state[0], state[1]] = 1           
+    # draw basket on bottom row, 
+    canvas[-1, state[2]-1:state[2] + (self.paddle_width-1)] = 1  
     return canvas
 
   def _reward(self):
@@ -94,7 +96,11 @@ class EnvCatcher(object):
         return 0
 
   def _observe(self):
-    return self._draw_state()
+    # if visualize the entire state matrix
+    # obs = self._draw_state()
+    # else give the state description vector
+    obs = self.state[0]
+    return obs
 
   def step(self, action):
     self.steps_taken += 1
