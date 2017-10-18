@@ -19,7 +19,7 @@ def main():
   logging.basicConfig(level=logging.DEBUG)
 
   # Set a random seed for consistency in agent AND environment.
-  random_seed = 0
+  random_seed = None
   if random_seed is not None:
       np.random.seed(random_seed)
 
