@@ -1,41 +1,37 @@
-"""Run Q-learning on Catch."""
+"""Run SARSA on Catch."""
 
 import rl
 import random
 import logging
 import numpy as np
 
-from EnvCatcher import EnvCatcher
-from agents.QLearningAgent import QLearningAgent
+import config
+from envs.EnvCatcher import EnvCatcher
+from agents.SarsaAgent import SarsaAgent
 
-
-# Set experimental parameters.
-MAX_NUM_STEPS = 100000
-GRID_SIZE = 24
-REPORT_EVERY_N = 100
 
 def main():
   # Set log level.
   logging.basicConfig(level=logging.DEBUG)
 
   # Set a random seed for consistency in agent AND environment.
-  random_seed = None
-  if random_seed is not None:
-      np.random.seed(random_seed)
+  if config.RANDOM_SEED is not None:
+      np.random.seed(config.RANDOM_SEED)
 
   # Make environment.
-  env = EnvCatcher(grid_size=GRID_SIZE, 
+  env = EnvCatcher(grid_size=config.GRID_SIZE, 
                    env_type='episodic', 
                    verbose=False, 
-                   random_seed=random_seed)
+                   random_seed=config.RANDOM_SEED)
 
   # Make agent.
-  agent = QLearningAgent(actions=list(range(env.action_space)), 
-                         learning_rate=0.05,
-                         discount_factor=0.9, 
-                         epsilon=0.1)
+  agent = SarsaAgent(actions=list(range(env.action_space)), 
+                     learning_rate=config.LEARNING_RATE,
+                     discount_factor=config.DISCOUNT_FACTOR, 
+                     epsilon=config.EPSILON)
 
-  rl.run_loop(agent, env, MAX_NUM_STEPS, REPORT_EVERY_N)
+  # Run the RL Loop.
+  rl.run_loop(agent, env, config.MAX_NUM_STEPS, config.REPORT_EVERY_N)
 
 if __name__ == '__main__':
   main()

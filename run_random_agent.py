@@ -1,51 +1,34 @@
+"""Run Q-learning on Catch."""
+
+import rl
 import random
+import logging
 import numpy as np
 
-from EnvCatcher import EnvCatcher
+import config
+from envs.EnvCatcher import EnvCatcher
+from agents.RandomAgent import RandomAgent
 
-# set experimental parameters
-max_num_episodes = 1000
-max_num_steps = 100
 
-# can set a random seed for consistency in agent AND environment
-random_seed = None
+def main():
+  # Set log level.
+  logging.basicConfig(level=logging.DEBUG)
 
-if random_seed is not None:
-    np.random.seed(random_seed)
+  # Set a random seed for consistency in agent AND environment.
+  if config.RANDOM_SEED is not None:
+      np.random.seed(config.RANDOM_SEED)
 
-# initialize the environment
-env = EnvCatcher(grid_size=24, env_type='episodic', verbose=True, 
-                 max_num_steps=100, random_seed=random_seed)
+  # Make environment.
+  env = EnvCatcher(grid_size=config.GRID_SIZE, 
+                   env_type='episodic', 
+                   verbose=False, 
+                   random_seed=config.RANDOM_SEED)
 
-total_reward_by_episode = []
+  # Make agent.
+  agent = RandomAgent(actions=list(range(env.action_space)))
 
-for i_episode in range(max_num_episodes):
+  # Run the RL Loop.
+  rl.run_loop(agent, env, config.MAX_NUM_STEPS, config.REPORT_EVERY_N)
 
-    # for each episode reset the environment and the episode reward
-    observation = env.reset()
-    ep_reward = 0
-    
-    # perform the episode for the max number of steps
-    for t in range(max_num_steps):
-    
-        # random action policy
-        action = np.random.randint(env.action_space)
-        
-        # take action in environment
-        observation, reward, done, info = env.step(action)
-        
-        # accumulate reward
-        ep_reward += reward
-
-        # environment will provide a done flag, learning should handle it
-        if done:
-            if i_episode % 100 == 0:
-                print("ep: {}, steps: {}, ep_reward_total: {}".format(i_episode, t+1, 
-                  ep_reward))
-            total_reward_by_episode.append(ep_reward)
-            break
-
-# print details of experiment
-# print('episode rewards', total_reward_by_episode)
-# print('sum of episode rewards', np.sum(total_reward_by_episode))
-print('average episodic reward', np.sum(total_reward_by_episode)/float(len(total_reward_by_episode)))
+if __name__ == '__main__':
+  main()

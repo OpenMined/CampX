@@ -2,7 +2,7 @@ import numpy as np
 from collections import defaultdict
 
 
-class QLearningAgent:
+class SarsaAgent:
     def __init__(self, actions, learning_rate, discount_factor, epsilon):
         self.actions = actions
         self.learning_rate = learning_rate

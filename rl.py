@@ -4,7 +4,7 @@ import logging
 import numpy as np
 
 
-def print_statistics(episode_returns, episode, agent, report_every_n):
+def print_statistics(episode_returns, episode, agent, report_every_n=100):
   """Print results during learning"""
   for name, value in agent.get_statistics().items():
        logging.debug('Agent ' + name + ': ' + str(value))
@@ -17,7 +17,7 @@ def print_statistics(episode_returns, episode, agent, report_every_n):
           + str(report_every_n) + ' episodes: {}'.format(b))
 
 
-def run_loop(agent, env, max_num_steps, report_every_n):
+def run_loop(agent, env, max_num_steps, report_every_n=100):
   """Run an agent for a defined number of steps."""
   t = 0
   episode = 0
@@ -26,6 +26,7 @@ def run_loop(agent, env, max_num_steps, report_every_n):
 
   # Reset the environment.
   observation = env.reset()
+  reward = 0
       
   while t < max_num_steps:
     # Get action from agent policy.
@@ -47,13 +48,21 @@ def run_loop(agent, env, max_num_steps, report_every_n):
     observation = next_observation
 
     # Update the current action from the next_action.
+    action = next_action
+
+    # Increment the step counter.
+    t += 1
     
     # Environment will provide a done flag, learning should handle it.
     if done:
+      # Increment the episode counter.
       episode += 1
+      # Append episode return to collection.
       episode_returns.append(episode_return)
       # Reset the environment.
       observation = env.reset()
       print_statistics(episode_returns, episode, agent, report_every_n)
+      # Reset episode return and reward.
       episode_return = 0
+      reward = 0
   return episode_returns
