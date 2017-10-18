@@ -39,7 +39,8 @@ def main():
 
   # Save the data.
   date_string = time.strftime("%Y%m%d-%H%M%S")
-  filename = 'sarsa_nep_{}_'.format(len(episode_returns)) + date_string + '.csv'
+  filename = ('sarsa_grid_{}_nep_{}_'.format(config.GRID_SIZE, 
+              len(episode_returns)) + date_string + '.csv')
   rl.save_episode_returns(filename=filename, episode_returns=episode_returns)
 
 if __name__ == '__main__':
