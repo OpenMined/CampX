@@ -37,11 +37,16 @@ def run_loop(agent, env, max_num_steps, report_every_n):
     # Accumulate reward.
     episode_return += reward
 
+    # Get the next action.
+    next_action = agent.get_action(next_observation)
+
     # Provide agent learning information.
-    agent.learn(observation, action, reward, next_observation)
+    agent.learn(observation, action, reward, next_observation, next_action)
 
     # Update the current observation from the next_observation.
     observation = next_observation
+
+    # Update the current action from the next_action.
     
     # Environment will provide a done flag, learning should handle it.
     if done:

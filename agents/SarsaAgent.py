@@ -24,8 +24,10 @@ class QLearningAgent:
       
       # Get the current and new q_values.
       q_value = self.q_table[observation][action]
-      td_error = (reward + self.gamma * max(self.q_table[next_observation]) 
-                  - q_value)
+      next_q_value = self.q_table[next_observation][next_action]
+      
+      # Calculate the temporal difference error.
+      td_error = reward + self.gamma * next_q_value - q_value
       
       # Update q_table.
       self.q_table[observation][action] += self.learning_rate * td_error
