@@ -8,6 +8,8 @@ Secret Agent Training Facility
 * SARSA - run_sarsa_agent.py
 # Random - run_random_agent.py
 
+![COMPARISON](/images/qlearn_comparison.png "Comaprison of Average Returns")
+
 # Environments
 
 ## EnvCatcher 

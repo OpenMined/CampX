@@ -45,7 +45,7 @@ def make_group_plot(args):
   # Return binned results for group figure.
   return results_binned
 
-def make_comparison_plot(args, res, keys):
+def make_comparison_plot(args, res, keys, min_length):
   """Make a comparison plot to compare two groups."""
   directory = args.directory
 
@@ -56,7 +56,7 @@ def make_comparison_plot(args, res, keys):
   sns.tsplot(data = np.stack(res, axis=2), condition=keys, ax=ax, ci=[68, 95])
   
   # Save the plot.
-  ax.set_title('Average Return by Group', fontsize=18)
+  ax.set_title('Average Return by Group, N=' + str(min_length), fontsize=18)
   ax.set_xlabel('Bin', fontsize=18)
   ax.set_ylabel('Average Return', fontsize=18)
   ax.legend(fontsize=18)
