@@ -6,9 +6,9 @@ Secret Agent Training Facility
 
 * Q-learning - run_q_learning_agent.py
 * SARSA - run_sarsa_agent.py
-# Random - run_random_agent.py
+* Random - run_random_agent.py
 
-![COMPARISON](/images/qlearn_comparison.png "Comaprison of Average Returns")
+![COMPARISON](https://github.com/OpenMined/CampX/blob/master/images/group_comparison.png "Comaprison of Average Returns")
 
 # Environments
 
@@ -54,7 +54,11 @@ Maximum number of steps = 1000000 ((43478 episodes), average over 100 episodes, 
 
 Maximum number of steps = 1000000 ((43478 episodes), average over 100 episodes, grid size = 24, learning rate = 0.1, discount factor = 0.98, epsilon = 0.1, random seed = None.
 
-![SARSA](/images/sarsa_groupfig.png "SARSA Average Returns")
+## Random
+
+20 separate runs batch processed by running ```sh ./par_random.sh```.
+
+![RANDOM](/images/random_groupfig.png "Random Average Returns")
 
 # References
 
