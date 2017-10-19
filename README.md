@@ -54,6 +54,8 @@ Maximum number of steps = 1000000 ((43478 episodes), average over 100 episodes, 
 
 Maximum number of steps = 1000000 ((43478 episodes), average over 100 episodes, grid size = 24, learning rate = 0.1, discount factor = 0.98, epsilon = 0.1, random seed = None.
 
+![SARSA](/images/sarsa_groupfig.png "SARSA Average Returns")
+
 ## Random
 
 20 separate runs batch processed by running ```sh ./par_random.sh```.
