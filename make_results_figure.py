@@ -43,7 +43,6 @@ def make_group_plot(args):
 
 
 if __name__ == "__main__":
-  # first command line argument is the directory to process
   parser = argparse.ArgumentParser(description=('Plot group of'
                                                 'experimental runs.'))
   parser.add_argument('-d', '--directory', default='output')

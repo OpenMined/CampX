@@ -2,18 +2,57 @@
 
 Secret Agent Training Facility
 
-# Details
+# Agents
+
+* Q-learning - run_q_learning_agent.py
+* SARSA - run_sarsa_agent.py
+# Random - run_random_agent.py
+
+# Environments
 
 ## EnvCatcher 
 Implementation of the Catch/Catcher environment [[1]](#references)
 
-Note: can instantiate the environment as either 'continuous' or 'episodic'.
+# Configuration
+
+All configuration values are set in config.py.
 
 # Run
 
 ```python
 python run_random_agent.py
 ```
+
+# Visualize Results
+
+## Interactive Notebook
+```sh
+jupyter notebook interactive_results_visualization.ipynb
+```
+
+## Script
+
+```python
+python make_results_figure.py
+```
+
+# Results
+
+## Q-learning Batch Process
+
+20 separate runs batch processed by running ```sh ./par_q_learn.sh```.
+
+Maximum number of steps = 1000000 ((43478 episodes), average over 100 episodes, grid size = 24, learning rate = 0.1, discount factor = 0.98, epsilon = 0.1, random seed = None.
+
+![QLEARN](/images/qlearn_groupfig.png "Q-learning Average Returns")
+
+## SARSA
+
+20 separate runs batch processed by running ```sh ./par_sarsa.sh```.
+
+Maximum number of steps = 1000000 ((43478 episodes), average over 100 episodes, grid size = 24, learning rate = 0.1, discount factor = 0.98, epsilon = 0.1, random seed = None.
+
+![SARSA](/images/sarsa_groupfig.png "SARSA Average Returns")
 
 # References
 
