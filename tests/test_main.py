@@ -44,7 +44,7 @@ class RandomAgentTest(unittest.TestCase):
 
     def runTest(self):
         logging.info('RandomAgentTest')
-        ep_returns = rl.run_loop(self.agent, self.env, (GRID_SIZE-1)*N_EPS)
+        ep_returns = rl.run_loop(self.agent, self.env, (GRID_SIZE - 1) * N_EPS)
         self.assertEqual(len(ep_returns), N_EPS)
 
 
@@ -68,7 +68,7 @@ class QLearningAgentTest(unittest.TestCase):
 
     def runTest(self):
         logging.info('QLearningAgentTest')
-        ep_returns = rl.run_loop(self.agent, self.env, (GRID_SIZE-1)*N_EPS)
+        ep_returns = rl.run_loop(self.agent, self.env, (GRID_SIZE - 1) * N_EPS)
         self.assertEqual(len(ep_returns), N_EPS)
         # Test for learning.
         self.assertEqual(0.2, np.average(ep_returns[-REPORT_EVERY_N:]))
@@ -94,7 +94,7 @@ class SarsaAgentTest(unittest.TestCase):
 
     def runTest(self):
         logging.info('SarsaAgentTest')
-        ep_returns = rl.run_loop(self.agent, self.env, (GRID_SIZE-1)*N_EPS)
+        ep_returns = rl.run_loop(self.agent, self.env, (GRID_SIZE - 1) * N_EPS)
         self.assertEqual(len(ep_returns), N_EPS)
         # Test for learning.
         self.assertEqual(0.2, np.average(ep_returns[-REPORT_EVERY_N:]))

@@ -20,14 +20,14 @@ def make_group_plot(args):
     df = pd.concat((pd.read_csv(f) for f in all_files), axis=1)
     df.columns = all_files
     results_raw = df.as_matrix()
-    num_bins = int(np.ceil(results_raw.shape[0]/buckets))
+    num_bins = int(np.ceil(results_raw.shape[0] / buckets))
     results_binned = np.zeros((results_raw.shape[1], num_bins))
 
     # Bin the results.
     for run in range(results_raw.shape[1]):
         for bin_idx in range(num_bins):
             results_binned[run, bin_idx] = (np.mean(results_raw[
-                int(bin_idx*buckets):int(bin_idx*buckets+buckets), run]))
+                int(bin_idx * buckets):int(bin_idx * buckets + buckets), run]))
 
     # Build the plot.
     fig, ax = plt.subplots(figsize=(args.figSizeX, args.figSizeY))
@@ -39,7 +39,7 @@ def make_group_plot(args):
     ax.set_ylabel('Average Return', fontsize=18)
     plt.tick_params(axis='both', which='major', labelsize=18)
     ax.xaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-    plt.savefig(os.path.join(directory, prefix+'_groupfig.png'),
+    plt.savefig(os.path.join(directory, prefix + '_groupfig.png'),
                 bbox_inches='tight')
 
     # Return binned results for group figure.

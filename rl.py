@@ -23,8 +23,8 @@ def print_statistics(episode_returns, episode, agent, report_every_n=100):
                  .format(np.average(episode_returns)))
     if len(episode_returns) > report_every_n:
         b = np.average(episode_returns[-report_every_n:])
-        logging.info('Average return over the previous '
-                     + str(report_every_n) + ' episodes: {}'.format(b))
+        logging.info('Average return over the previous ' + str(report_every_n) +
+                     ' episodes: {}'.format(b))
 
 
 def run_loop(agent, env, max_num_steps, report_every_n=100):

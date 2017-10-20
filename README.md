@@ -1,6 +1,7 @@
 # CampX
+[![Build Status](https://travis-ci.org/OpenMined/CampX.svg?branch=master)](https://travis-ci.org/OpenMined/CampX)
 
-Secret Agent Training Facility
+> Secret Agent Training Facility
 
 # Agents
 
@@ -12,7 +13,7 @@ Secret Agent Training Facility
 
 # Environments
 
-## EnvCatcher 
+## EnvCatcher
 Implementation of the Catch/Catcher environment [[1]](#references)
 
 # Configuration
