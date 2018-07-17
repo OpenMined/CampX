@@ -23,7 +23,7 @@ class TensorWorld(object):
     def set_agent(self, agent):
         self.agents = agent
         
-    def start(self):
+    def reset(self):
 
         for thing in self.things:
             thing.create_world(self.rows, self.cols)
@@ -49,3 +49,10 @@ class TensorWorld(object):
 
         new_state = (y[0] * left) + (y[1] * right) + (y[2] * up) + (y[3] * down) + (y[4] * stay)
         self.agent.w = new_state
+
+    def step(self, action):
+        action = torch.FloatTensor([0,1,0,0,0])
+        self.update(action)
+        reward = self.reward()
+        observation = self.render()
+        return observation, reward
