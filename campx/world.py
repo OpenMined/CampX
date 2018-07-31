@@ -1,24 +1,23 @@
 import torch
+from . import things
+import collections
 
-class TensorWorld(object):
+class Engine(object):
     
-    def __init__(self, rows, cols, things=None, agent=None):
-        self.rows = rows
-        self.cols = cols
-        
-        if(things is None):
-            self.things = list()
-        else:
-            self.things = things
+    def __init__(self, rows, cols):
+        self._rows = rows
+        self._cols = cols
 
-        self.agent = agent
-        self.cat2things = {}
-    
-    def add_thing(self, thing):
-        self.things.append(thing)
-        if(thing.category not in self.cat2things):
-            self.cat2things[thing.category] = set()
-        self.cat2things[thing.category].add(thing)
+        self._sprites_and_drapes = collections.OrderedDict()
+
+    def add_sprite(self, character, position, sprite_class, *args, **kwargs):
+        # Construct the game board dimensions for the benefit of this sprite.
+        corner = things.Sprite.Position(self._rows, self._cols)
+
+        # Build and save the drape.
+        sprite = sprite_class(corner, position, character, *args, **kwargs)
+        self._sprites_and_drapes[character] = sprite
+
         
     def set_agent(self, agent):
         self.agents = agent

@@ -1,4 +1,4 @@
-from .thing import AbstractThing
+from .things import AbstractThing
 
 class Agent(AbstractThing):
     def __init__(self, init_x=None, init_y=None):
