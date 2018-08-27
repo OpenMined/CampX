@@ -1,4 +1,11 @@
 from . import things
+from .engine import Engine
+
+import torch
+import six
+import itertools
+
+import numpy as np
 
 
 def ascii_art_to_long_tensor(art):
@@ -110,7 +117,7 @@ def ascii_art_to_game(art,
 
     ### 3. Convert all ASCII art to numpy arrays ###
 
-    art = ascii_art_to_long_tensor(HELLO_ART)
+    art = ascii_art_to_long_tensor(art)
 
     # In preparation for masking out sprites and drapes from the ASCII art array
     # (to make the background), do similar for what_lies_beneath.
@@ -175,5 +182,43 @@ def ascii_art_to_game(art,
     ### 6. Impose specified Z-order ###
     game.set_z_order(z_order)
 
+    ### 7. Add the Backdrop to the engine ###
+
+    game.set_prefilled_backdrop(
+        characters=''.join(chr(c) for c in np.unique(art)),
+        prefill=art,
+        backdrop_class=backdrop.pycolab_thing,
+        *backdrop.args, **backdrop.kwargs)
 
     return game
+
+class Partial(object):
+  """Holds a pycolab "thing" and its extra constructor arguments.
+  In a spirit similar to `functools.partial`, a `Partial` object holds a
+  subclass of one of the pycolab game entities described in `things.py`, along
+  with any "extra" arguments required for its constructor (i.e. those besides
+  the constructor arguments specified by the `things.py` base class
+  constructors).
+  `Partial` instances can be used to pass `Sprite`, `Drape` and `Backdrop`
+  subclasses *and* their necessary "extra" constructor arguments to
+  `ascii_art_to_game`.
+  """
+
+  def __init__(self, pycolab_thing, *args, **kwargs):
+    """Construct a new Partial object.
+    Args:
+      pycolab_thing: a `Backdrop`, `Sprite`, or `Drape` subclass (note: not an
+          object, the class itself).
+      *args: "Extra" positional arguments for the `pycolab_thing` constructor.
+      **kwargs: "Extra" keyword arguments for the `pycolab_thing` constructor.
+    Raises:
+      TypeError: `pycolab_thing` was not a `Backdrop`, a `Sprite`, or a `Drape`.
+    """
+    if not issubclass(pycolab_thing,
+                      (things.Backdrop, things.Sprite, things.Drape)):
+      raise TypeError('the pycolab_thing argument to ascii_art.Partial must be '
+                      'a Backdrop, Sprite, or Drape subclass.')
+
+    self.pycolab_thing = pycolab_thing
+    self.args = args
+    self.kwargs = kwargs

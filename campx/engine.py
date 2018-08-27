@@ -1,6 +1,7 @@
 import torch
 from . import things
 import collections
+import numpy as np
 
 
 class Engine(object):
@@ -179,3 +180,155 @@ class Engine(object):
         for character in z_order:
             new_sprites_and_drapes[character] = self._sprites_and_drapes[character]
         self._sprites_and_drapes = new_sprites_and_drapes
+
+
+    def set_prefilled_backdrop(
+          self, characters, prefill, backdrop_class, *args, **kwargs):
+        """Add a `Backdrop` to this `Engine`, with a custom initial pattern.
+        Much the same as `set_backdrop`, this method also allows callers to
+        "prefill" the background with an arbitrary pattern. This method is mainly
+        intended for use by the `ascii_art` tools; most `Backdrop` subclasses should
+        fill their `curtain` on their own in the constructor (or in `update()`).
+        This method does NOT check to make certain that `prefill` contains only
+        ASCII values corresponding to characters in `characters`; your `Backdrop`
+        class should ensure that only valid characters are present in the curtain
+        after the first call to its `update` method returns.
+        Args:
+          characters: A collection of ASCII characters that the `Backdrop` is
+              allowed to use. (A string will work as an argument here.)
+          prefill: 2-D `uint8` numpy array of the same dimensions as this `Engine`.
+              The `Backdrop`'s curtain will be initialised with this pattern.
+          backdrop_class: A subclass of `Backdrop` (including `Backdrop` itself)
+              that will be constructed by this method.
+          *args: Additional positional arguments for the `backdrop_class`
+              constructor.
+          **kwargs: Additional keyword arguments for the `backdrop_class`
+              constructor.
+        Returns:
+          the newly-created `Backdrop`.
+        Raises:
+          RuntimeError: if gameplay has already begun, if `set_backdrop` has already
+              been called for this engine, or if any characters in `characters` has
+              already been claimed by a preceding call to the `add` method.
+          TypeError: if `backdrop_class` is not a `Backdrop` subclass.
+          ValueError: if `characters` are not ASCII characters.
+        """
+        self._runtime_error_if_called_during_showtime('set_prefilled_backdrop')
+        self._value_error_if_characters_are_bad(characters)
+        self._runtime_error_if_characters_claimed_already(characters)
+        if self._backdrop:
+          raise RuntimeError('A backdrop of type {} has already been supplied to '
+                             'this Engine.'.format(type(self._backdrop)))
+        if not issubclass(backdrop_class, things.Backdrop):
+          raise TypeError('backdrop_class arguments to Engine.set_backdrop must '
+                          'either be a Backdrop class or one of its subclasses.')
+
+        # Construct a new curtain and palette for the Backdrop.
+        curtain = torch.LongTensor(np.zeros((self._rows, self._cols), dtype=np.uint8))
+        palette = Palette(characters)
+
+        # Fill the curtain with the prefill data.
+        # np.copyto(dst=curtain, src=prefill, casting='equiv')
+        curtain.set_(prefill)
+
+        # Build and set the Backdrop.
+        self._backdrop = backdrop_class(curtain, palette, *args, **kwargs)
+
+        return self._backdrop
+
+class Palette(object):
+  """A helper class for turning human-readable characters into numerical values.
+  Classes like `Backdrop` need to assign certain `uint8` values to cells in the
+  game board. Since these values are typically printable ASCII characters, this
+  assignment can be both cumbersome (e.g. `board[r][c] = ord('j')`) and error-
+  prone (what if 'j' isn't a valid value for the Backdrop to use?).
+  A `Palette` object (which you can give a very short name, like `p`) is
+  programmed with all of the valid characters for your Backdrop. Those that are
+  valid Python variable names become attributes of the object, whose access
+  yields the corresponding ASCII ordinal value (e.g. `p.j == 106`). Characters
+  that are not legal Python names, like `#`, can be converted through lookup
+  notation (e.g. `p['#'] == 35`). However, any character that was NOT programmed
+  into the `Palette` object yields an `AttributeError` or and `IndexError`
+  respectively.
+  Finally, this class also supports a wide range of aliases for characters that
+  are not valid variable names. There is a decent chance that the name you give
+  to a symbolic character is there; for example, `p.hash == p['#'] == 35`. If
+  it's not there, consider adding it...
+  """
+
+  _ALIASES = dict(
+      backtick='`', backquote='`', grave='`',
+      tilde='~',
+      zero='0', one='1', two='2', three='3', four='4',
+      five='5', six='6', seven='7', eight='8', nine='9',
+      bang='!', exclamation='!', exclamation_point='!', exclamation_pt='!',
+      at='@',
+      # regrettably, £ is not ASCII.
+      hash='#', octothorpe='#', number_sign='#', pigpen='#', pound='#',
+      dollar='$', dollar_sign='$', buck='$', mammon='$',
+      percent='%', percent_sign='%', food='%',
+      carat='^', circumflex='^', trap='^',
+      and_sign='&', ampersand='&',
+      asterisk='*', star='*', splat='*',
+      lbracket='(', left_bracket='(', lparen='(', left_paren='(',
+      rbracket=')', right_bracket=')', rparen=')', right_paren=')',
+      dash='-', hyphen='-',
+      underscore='_',
+      plus='+', add='+',
+      equal='=', equals='=',
+      lsquare='[', left_square_bracket='[',
+      rsquare=']', right_square_bracket=']',
+      lbrace='{', lcurly='{', left_brace='{', left_curly='{',
+      left_curly_brace='{',
+      rbrace='}', rcurly='}', right_brace='}', right_curly='}',
+      right_curly_brace='}',
+      pipe='|', bar='|',
+      backslash='\\', back_slash='\\', reverse_solidus='\\',
+      semicolon=';',
+      colon=':',
+      tick='\'', quote='\'', inverted_comma='\'', prime='\'',
+      quotes='"', double_inverted_commas='"', quotation_mark='"',
+      zed='z',
+      comma=',',
+      less_than='<', langle='<', left_angle='<', left_angle_bracket='<',
+      period='.', full_stop='.',
+      greater_than='>', rangle='>', right_angle='>', right_angle_bracket='>',
+      question='?', question_mark='?',
+      slash='/', solidus='/',
+  )
+
+  def __init__(self, legal_characters):
+    """Construct a new `Palette` object.
+    Args:
+      legal_characters: An iterable of characters that users of this `Palette`
+          are allowed to use. (A string like "#.o " will work.)
+    Raises:
+      ValueError: a value inside `legal_characters` is not a single character.
+    """
+    for char in legal_characters:
+      if len(char) != 1:
+        raise ValueError('Palette constructor requires legal characters to be '
+                         'actual single charaters. "{}" is not.'.format(char))
+    self._legal_characters = set(legal_characters)
+
+  def __getattr__(self, name):
+    return self._actual_lookup(name, AttributeError)
+
+  def __getitem__(self, key):
+    return self._actual_lookup(key, IndexError)
+
+  def __contains__(self, key):
+    # It is intentional, but probably not so important (as long as there are no
+    # single-character aliases) that we do not do an aliases lookup for key.
+    return key in self._legal_characters
+
+  def __iter__(self):
+    return iter(self._legal_characters)
+
+  def _actual_lookup(self, key, error):
+    """Helper: perform character validation and conversion to numeric value."""
+    if key in self._ALIASES: key = self._ALIASES[key]
+    if key in self._legal_characters: return ord(key)
+    raise error(
+        '{} is not a legal character in this Palette; legal characters '
+        'are {}.'.format(key, list(self._legal_characters)))
