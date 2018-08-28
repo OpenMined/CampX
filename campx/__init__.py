@@ -1,5 +1,5 @@
 from . import agent
-from . import thing
-from . import world
+from . import things
+from . import engine
 
-__all__ = ['agent', 'thing', 'world']
+__all__ = ['agent', 'things.py', 'engine.py']

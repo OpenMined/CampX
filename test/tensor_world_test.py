@@ -2,9 +2,9 @@ from unittest import TestCase
 
 import torch
 
-from campx.thing import Thing
+from campx.things import Thing
 from campx.agent import Agent
-from campx.world import TensorWorld
+from campx.engine import TensorWorld
 
 class TestTensorWorld(TestCase):
     def test_world_init(self):
