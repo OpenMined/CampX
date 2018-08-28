@@ -102,6 +102,9 @@ def ascii_art_to_game(art,
         raise ValueError('if specified, update_schedule must list each sprite and '
                          'drape exactly once.')
 
+    # print(non_backdrop_characters)
+    # print(z_order)
+
     # The default z-order is derived from there.
     if z_order is None: z_order = flat_update_schedule
     if set(z_order) != non_backdrop_characters:

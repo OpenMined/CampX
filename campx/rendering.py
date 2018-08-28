@@ -26,7 +26,7 @@ import numpy as np
 import six
 import torch
 
-class Observation(collections.namedtuple('Observation', ['board', 'layers'])):
+class Observation(collections.namedtuple('Observation', ['board', 'layers', 'layered_board'])):
   """A container for pycolab observations.
 
   Natively, the pycolab engine renders observations as one of these objects
@@ -92,9 +92,14 @@ class BaseObservationRenderer(object):
       characters: an iterable of ASCII characters that are allowed to appear
           on the game board. (A string will work as an argument here.)
     """
+
+    self.rows = rows
+    self.cols = cols
+
     self._board = torch.LongTensor(np.zeros((rows, cols), dtype=np.uint8))
     self._layers = {
         char: torch.zeros((rows, cols)).byte() for char in characters}
+    self._layered_board = torch.zeros((len(characters), rows, cols)).byte()
 
   def clear(self):
     """Reset the "canvas" of this `BaseObservationRenderer`.
@@ -161,7 +166,7 @@ class BaseObservationRenderer(object):
                        'this game'.format(str(character)))
     self._board[curtain] = ord(character)
 
-  def render(self):
+  def render(self, layered_board=False):
     """Derive an `Observation` from this `BaseObservationRenderer`'s "canvas".
 
     Reminders: the values in the returned `Observation` should be accessed in
@@ -176,9 +181,22 @@ class BaseObservationRenderer(object):
       presented to this `BaseObservationRenderer` since the last call to its
       `clear()` method.
     """
-    for character, layer in six.iteritems(self._layers):
-      layer.set_(self._board ==  ord(character))
-    return Observation(board=self._board, layers=self._layers)
+
+    # just to make a deterministic (alphabetical) order of keys
+    keys = list(set(self._layers.keys()))
+
+    lb_list = list()
+    for char in keys:
+      self._layers[char].set_(self._board == ord(char))
+      lb_list.append(self._layers[char])
+
+    self._layered_board = torch.cat(lb_list).view(len(lb_list),
+                                                  self.rows,
+                                                  self.cols )
+
+    return Observation(board=self._board,
+                       layers=self._layers,
+                       layered_board=self._layered_board)
 
   @property
   def shape(self):
