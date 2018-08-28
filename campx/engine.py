@@ -18,6 +18,7 @@
 
 import torch
 from . import things
+from . import rendering
 import collections
 import numpy as np
 
@@ -253,6 +254,65 @@ class Engine(object):
         self._backdrop = backdrop_class(curtain, palette, *args, **kwargs)
 
         return self._backdrop
+
+    def its_showtime(self):
+        """Finalise `Engine` set-up and compute the first observation of the game.
+        Switches the `Engine` from set-up mode, where more `Sprite`s and `Drape`s
+        can be added, to "play" mode, where gameplay iterates via the `play` method.
+        After this permanent modal switch, no further calls to `add_drape` or
+        `add_sprite` can be made.
+        Once in "play" mode, consults the `Backdrop` and all `Sprite`s and `Drape`s
+        for updates, and uses these to compute the episode's first observation.
+        Returns:
+          A three-tuple with the following members:
+            * A `rendering.Observation` object containing single-array and
+              multi-array feature-map representations of the game board.
+            * An initial reward given to the player (or players) (before it/they
+              even gets/get a chance to play!). This reward can be any type---it all
+              depends on what the `Backdrop`, `Sprite`s, and `Drape`s have
+              communicated to the `Plot`. If none have communicated anything at all,
+              this will be None.
+            * A reinforcement learning discount factor value. By default, it will be
+              1.0 if the game is still ongoing; if the game has just terminated
+              (before the player got a chance to do anything!), `discount` will be
+              0.0 unless the game has chosen to supply a non-standard value to the
+              `Plot`'s `terminate_episode` method.
+        Raises:
+          RuntimeError: if this method is called more than once, or if no
+              `Backdrop` class has ever been provided to the Engine.
+        """
+        self._runtime_error_if_called_during_showtime('its_showtime')
+
+        # It's showtime!
+        self._showtime = True
+
+        # Now that all the Sprites and Drapes are known, convert the update groups
+        # to a more efficient structure.
+        self._update_groups = [(key, self._update_groups[key])
+                               for key in sorted(self._update_groups.keys())]
+
+        # And, I guess we promised to do this:
+        self._current_update_group = None
+
+        # Construct the game's observation renderer.
+        chars = set(self._sprites_and_drapes.keys()).union(self._backdrop.palette)
+        if self._occlusion_in_layers:
+            self._renderer = rendering.BaseObservationRenderer(
+                self._rows, self._cols, chars)
+        else:
+            self._renderer = rendering.BaseUnoccludedObservationRenderer(
+                self._rows, self._cols, chars)
+
+        # Render a "pre-initial" board rendering from all of the data in the
+        # Engine's Backdrop, Sprites, and Drapes. This rendering is only used as
+        # input to these entities to collect their updates for the very first frame;
+        # as it accesses data members inside the entities directly, it doesn't
+        # actually run any of their code (unless implementers ignore notes that say
+        # "Final. Do not override.").
+        self._render()
+
+        # The behaviour of this method is now identical to play() with None actions.
+        return self.play(None)
 
 class Palette(object):
   """A helper class for turning human-readable characters into numerical values.
