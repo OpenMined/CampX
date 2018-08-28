@@ -94,7 +94,7 @@ class BaseObservationRenderer(object):
     """
     self._board = torch.LongTensor(np.zeros((rows, cols), dtype=np.uint8))
     self._layers = {
-        char: np.zeros((rows, cols), dtype=np.bool_) for char in characters}
+        char: torch.zeros((rows, cols)).byte() for char in characters}
 
   def clear(self):
     """Reset the "canvas" of this `BaseObservationRenderer`.
@@ -177,7 +177,7 @@ class BaseObservationRenderer(object):
       `clear()` method.
     """
     for character, layer in six.iteritems(self._layers):
-      np.equal(self._board, ord(character), out=layer)
+      layer.set_(self._board ==  ord(character))
     return Observation(board=self._board, layers=self._layers)
 
   @property

@@ -33,8 +33,10 @@ class Engine(object):
         self._sprites_and_drapes = collections.OrderedDict()
         self._update_groups = collections.defaultdict(list)
         self._showtime = False
+        self._game_over = False
         self._occlusion_in_layers = occlusion_in_layers
         self._the_plot = plot.Plot()
+
 
     def add_sprite(self, character, position, sprite_class, *args, **kwargs):
         self._runtime_error_if_called_during_showtime('add_sprite')
@@ -114,6 +116,43 @@ class Engine(object):
 
         # Return first-frame rendering to the user.
         return self._board, reward, discount
+
+    def _update_and_render(self, actions):
+        """Perform all game entity updates and render the next observation.
+        This private method is the heart of the `Engine`: as dictated by the update
+        order, it consults the `Backdrop` and all `Sprite`s and `Layer`s for
+        updates, then renders the game board (`self._board`) based on those updates.
+        Args:
+          actions: Actions supplied by the external agent(s) in response to the last
+              board. Could be a scalar, could be an arbitrarily nested structure
+              of... stuff, it's entirely up to the game you're making. When the game
+              begins, however, it is guaranteed to be None. Used for the `update()`
+              method of the `Backdrop` and all `Sprite`s and `Layer`s.
+        """
+        assert self._board, (
+            '_update_and_render() called without a prior rendering of the board')
+
+        # A new frame begins!
+        self._the_plot.frame += 1
+
+        # We start with the backdrop; it doesn't really belong to an update group,
+        # or it belongs to the first update group, depending on how you look at it.
+        self._the_plot.update_group = None
+        self._backdrop.update(actions,
+                              self._board.board, self._board.layers,
+                              self._sprites_and_drapes, self._the_plot)
+
+        # Now we proceed through each of the update groups in the prescribed order.
+        for update_group, entities in self._update_groups:
+            # First, consult each item in this update group for updates.
+            self._the_plot.update_group = update_group
+            for entity in entities:
+                entity.update(actions,
+                              self._board.board, self._board.layers,
+                              self._backdrop, self._sprites_and_drapes, self._the_plot)
+
+            # Next, repaint the board to reflect the updates from this update group.
+            self._render()
 
     def _apply_and_clear_plot(self):
         """Apply directives to this `Engine` found in its `Plot` object.
