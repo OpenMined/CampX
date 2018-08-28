@@ -2,9 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eb1d050c-94fb-4c88-8c17-1c806ce62c6a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/campx/rendering.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/campx/plot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/campx/engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/campx/engine.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/campx/rendering.py" beforeDir="false" afterPath="$PROJECT_DIR$/campx/rendering.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/examples/Basic World.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/Basic World.ipynb" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -28,40 +29,49 @@
       <usages-collector id="statistics.file.extensions.open">
         <counts>
           <entry key="md" value="1" />
-          <entry key="py" value="5" />
+          <entry key="py" value="6" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.open">
         <counts>
           <entry key="Markdown" value="1" />
-          <entry key="Python" value="5" />
+          <entry key="Python" value="6" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
           <entry key="dummy" value="7" />
           <entry key="md" value="230" />
-          <entry key="py" value="720" />
+          <entry key="py" value="938" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
           <entry key="Markdown" value="230" />
           <entry key="PLAIN_TEXT" value="7" />
-          <entry key="Python" value="720" />
+          <entry key="Python" value="938" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/campx/engine.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="566">
-              <caret line="302" column="33" lean-forward="true" selection-start-line="302" selection-start-column="33" selection-end-line="302" selection-end-column="33" />
+            <state relative-caret-position="187">
+              <caret line="21" column="18" selection-start-line="21" selection-start-column="18" selection-end-line="21" selection-end-column="18" />
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file pinned="false" current-in-tab="true">
+        <entry file="file://$PROJECT_DIR$/campx/plot.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="15">
+              <caret line="1" column="34" selection-start-line="1" selection-start-column="34" selection-end-line="1" selection-end-column="34" />
               <folding>
-                <element signature="e#0#12#0" expanded="true" />
+                <element signature="e#670#708#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -70,10 +80,10 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/campx/rendering.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1008">
-              <caret line="660" column="53" selection-start-line="660" selection-start-column="53" selection-end-line="660" selection-end-column="53" />
+            <state relative-caret-position="297">
+              <caret line="103" column="29" lean-forward="true" selection-start-line="103" selection-start-column="29" selection-end-line="103" selection-end-column="29" />
               <folding>
-                <element signature="e#666#704#0" expanded="true" />
+                <element signature="e#701#739#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -119,7 +129,7 @@
         <entry file="file://$PROJECT_DIR$/campx/agent.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="60">
-              <caret line="4" column="17" lean-forward="true" selection-start-line="4" selection-start-column="17" selection-end-line="4" selection-end-column="17" />
+              <caret line="4" column="17" selection-start-line="4" selection-start-column="17" selection-end-line="4" selection-end-column="17" />
             </state>
           </provider>
         </entry>
@@ -132,6 +142,8 @@
       <find>set_pref</find>
       <find>art.</find>
       <find>np.copyto</find>
+      <find>np.copyto(self._board, curtain, casting='no')</find>
+      <find>self._board.fill(0)</find>
       <find>its_show</find>
     </findStrings>
   </component>
@@ -148,6 +160,7 @@
         <option value="$PROJECT_DIR$/campx/ascii_art.py" />
         <option value="$PROJECT_DIR$/campx/rendering.py" />
         <option value="$PROJECT_DIR$/campx/engine.py" />
+        <option value="$PROJECT_DIR$/campx/plot.py" />
       </list>
     </option>
   </component>
@@ -290,26 +303,33 @@
     <entry file="file://$PROJECT_DIR$/campx/agent.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="60">
-          <caret line="4" column="17" lean-forward="true" selection-start-line="4" selection-start-column="17" selection-end-line="4" selection-end-column="17" />
+          <caret line="4" column="17" selection-start-line="4" selection-start-column="17" selection-end-line="4" selection-end-column="17" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/campx/rendering.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1008">
-          <caret line="660" column="53" selection-start-line="660" selection-start-column="53" selection-end-line="660" selection-end-column="53" />
+        <state relative-caret-position="297">
+          <caret line="103" column="29" lean-forward="true" selection-start-line="103" selection-start-column="29" selection-end-line="103" selection-end-column="29" />
           <folding>
-            <element signature="e#666#704#0" expanded="true" />
+            <element signature="e#701#739#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/campx/engine.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="566">
-          <caret line="302" column="33" lean-forward="true" selection-start-line="302" selection-start-column="33" selection-end-line="302" selection-end-column="33" />
+        <state relative-caret-position="187">
+          <caret line="21" column="18" selection-start-line="21" selection-start-column="18" selection-end-line="21" selection-end-column="18" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/campx/plot.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="15">
+          <caret line="1" column="34" selection-start-line="1" selection-start-column="34" selection-end-line="1" selection-end-column="34" />
           <folding>
-            <element signature="e#0#12#0" expanded="true" />
+            <element signature="e#670#708#0" expanded="true" />
           </folding>
         </state>
       </provider>

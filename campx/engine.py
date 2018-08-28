@@ -19,9 +19,10 @@
 import torch
 from . import things
 from . import rendering
+from . import plot
 import collections
 import numpy as np
-
+import six
 
 class Engine(object):
 
@@ -32,6 +33,8 @@ class Engine(object):
         self._sprites_and_drapes = collections.OrderedDict()
         self._update_groups = collections.defaultdict(list)
         self._showtime = False
+        self._occlusion_in_layers = occlusion_in_layers
+        self._the_plot = plot.Plot()
 
     def add_sprite(self, character, position, sprite_class, *args, **kwargs):
         self._runtime_error_if_called_during_showtime('add_sprite')
@@ -57,6 +60,166 @@ class Engine(object):
         self._update_groups[self._current_update_group].append(sprite)
 
         return sprite
+
+    def play(self, actions):
+        """Perform another game iteration, applying player actions.
+        Receives an action (or actions) from the player (or players). Consults the
+        `Backdrop` and all `Sprite`s and `Drape`s for updates in response to those
+        actions, and derives a new observation from them to show the user. Also
+        collects reward(s) for the last action and determines whether the episode
+        has terminated.
+        Args:
+          actions: Actions supplied by the external agent(s) in response to the last
+              board. Could be a scalar, could be an arbitrarily nested structure
+              of... stuff, it's entirely up to the game you're making. When the game
+              begins, however, it is guaranteed to be None. Used for the `update()`
+              method of the `Backdrop` and all `Sprite`s and `Layer`s.
+        Returns:
+          A three-tuple with the following members:
+            * A `rendering.Observation` object containing single-array and
+              multi-array feature-map representations of the game board.
+            * An reward given to the player (or players) for having performed
+              `actions` in response to the last observation. This reward can be any
+              type---it all depends on what the `Backdrop`, `Sprite`s, and `Drape`s
+              have communicated to the `Plot`. If none have communicated anything at
+              all, this will be None.
+            * A reinforcement learning discount factor value. By default, it will be
+              1.0 if the game is still ongoing; if the game has just terminated
+              (before the player got a chance to do anything!), `discount` will be
+              0.0 unless the game has chosen to supply a non-standard value to the
+              `Plot`'s `terminate_episode` method.
+        Raises:
+          RuntimeError: if this method has been called before the `Engine` has
+              been finalised via `its_showtime()`, or if this method has been called
+              after the episode has terminated.
+        """
+        if not self._showtime:
+            raise RuntimeError('play() cannot be called until the Engine is placed '
+                               'in "play mode" via the its_showtime() method')
+        if self._game_over:
+            raise RuntimeError('play() was called after the episode handled by this '
+                               'Engine has terminated')
+
+        # Update Backdrop and all Sprites and Drapes.
+        self._update_and_render(actions)
+
+        # Apply all plot directives that the Backdrop, Sprites, and Drapes have
+        # submitted to the Plot during the update.
+        reward, discount, should_rerender = self._apply_and_clear_plot()
+
+        # If directives in the Plot changed our state in any way that would change
+        # the appearance of the observation (e.g. changing the z-order), we'll have
+        # to re-render it before we return it.
+        if should_rerender: self._render()
+
+        # Return first-frame rendering to the user.
+        return self._board, reward, discount
+
+    def _apply_and_clear_plot(self):
+        """Apply directives to this `Engine` found in its `Plot` object.
+        These directives are requests from the `Backdrop` and all `Drape`s and
+        `Sprite`s for the engine to alter its global state or its interaction with
+        the player (or players). They include requests to alter the z-order,
+        terminate the game, or report some kind of reward. For more information on
+        these directives, refer to `Plot` object documentation.
+        After collecting and applying these directives to the `Engine`s state, all
+        are cleared in preparation for the next game iteration.
+        Returns:
+          A 2-tuple with the following elements:
+            * A reward value summed over all of the rewards that the `Backdrop` and
+              all `Drape`s and `Sprite`s requested be reported to the player (or
+              players), or None if nobody specified a reward. Otherwise, this reward
+              can be any type; it all depends on what the `Backdrop`, `Drape`s, and
+              `Sprite`s have provided.
+            * A boolean value indicating whether the `Engine` should re-render the
+              observation before supplying it to the user. This is necessary if any
+              of the Plot directives change the `Engine`'s state in ways that would
+              change the appearance of the observation, like changing the z-order.
+        Raises:
+          RuntimeError: a z-order change directive in the Plot refers to a `Sprite`
+              or `Drape` that does not exist.
+        """
+        directives = self._the_plot._get_engine_directives()  # pylint: disable=protected-access
+
+        # So far, there's no reason to re-render the observation.
+        should_rerender = False
+
+        # We don't expect to have too many z-order changes, so this slow, simple
+        # algorithm will probably do the trick.
+        for move_this, in_front_of_that in directives.z_updates:
+            # We have a z-order change, so re-rendering is necessary.
+            should_rerender = True
+
+            # Make sure that the characters in the z-order change directive correspond
+            # to actual `Sprite`s and `Drape`s.
+            if move_this not in self._sprites_and_drapes:
+                raise RuntimeError(
+                    'A z-order change directive said to move a Sprite or Drape '
+                    'corresponding to character {}, but no such Sprite or Drape '
+                    'exists'.format(repr(move_this)))
+            if in_front_of_that is not None:
+                if in_front_of_that not in self._sprites_and_drapes:
+                    raise RuntimeError(
+                        'A z-order change directive said to move a Sprite or Drape in '
+                        'front of a Sprite or Drape corresponding to character {}, but '
+                        'no such Sprite or Drape exists'.format(repr(in_front_of_that)))
+
+            # Each directive means replacing the entire self._sprites_and_drapes dict.
+            new_sprites_and_drapes = collections.OrderedDict()
+
+            # Retrieve the Sprite or Drape that we are directed to move.
+            moving_sprite_or_drape = self._sprites_and_drapes[move_this]
+
+            # This special case handles circumstances where a Sprite or Drape is moved
+            # all the way to the back of the z-order.
+            if in_front_of_that is None:
+                new_sprites_and_drapes[move_this] = moving_sprite_or_drape
+
+            # Copy all Sprites or Drapes into the new sprites_and_drapes OrderedDict,
+            # inserting the moving entity in front of the one it's meant to occulude.
+            for character, entity in six.iteritems(self._sprites_and_drapes):
+                if character == move_this: continue
+                new_sprites_and_drapes[character] = entity
+                if character == in_front_of_that:
+                    new_sprites_and_drapes[move_this] = moving_sprite_or_drape
+
+            # Install the OrderedDict just made as the new z-order and catalogue
+            # of Sprites and Drapes.
+            self._sprites_and_drapes = new_sprites_and_drapes
+
+        # The Backdrop or one of the Sprites or Drapes may have directed the game
+        # to end. Update our game-over flag.
+        self._game_over = directives.game_over
+        # Collect the sum of all rewards from this latest game iteration, in
+        # preparation to return it to the player.
+        reward = directives.summed_reward
+        # Get the discount value from the latest game iteration.
+        discount = directives.discount
+        # Reset the Plot for the next game iteration, should there be one.
+        self._the_plot._clear_engine_directives()  # pylint: disable=protected-access
+        return reward, discount, should_rerender
+
+    def _render(self):
+        """Render a new game board.
+        Computes a new rendering of the game board, and assigns it to `self._board`,
+        based on the current contents of the `Backdrop` and all `Sprite`s and
+        `Drape`s. Uses properties of those objects to obtain those contents; no
+        computation should be done on their part.
+        Each object is "painted" on the board in a prescribed order: the `Backdrop`
+        first, then the `Sprite`s and `Drape`s according to the z-order (the order
+        in which they appear in `self._sprites_and_drapes`
+        """
+        self._renderer.clear()
+        self._renderer.paint_all_of(self._backdrop.curtain)
+        for character, entity in six.iteritems(self._sprites_and_drapes):
+            # By now we should have checked fairly carefully that all entities in
+            # _sprites_and_drapes are Sprites or Drapes.
+            if isinstance(entity, things.Sprite) and entity.visible:
+                self._renderer.paint_sprite(character, entity.position)
+            elif isinstance(entity, things.Drape):
+                self._renderer.paint_drape(character, entity.curtain)
+        # Done with all the layers; render the board!
+        self._board = self._renderer.render()
 
     def set_agent(self, agent):
         self.agents = agent

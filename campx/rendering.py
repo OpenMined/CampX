@@ -1,6 +1,7 @@
 # coding=utf8
 
 # Copyright 2017 the pycolab Authors
+# Copyright 2018 the campx Authors
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,7 +24,7 @@ from __future__ import print_function
 import collections
 import numpy as np
 import six
-
+import torch
 
 class Observation(collections.namedtuple('Observation', ['board', 'layers'])):
   """A container for pycolab observations.
@@ -91,7 +92,7 @@ class BaseObservationRenderer(object):
       characters: an iterable of ASCII characters that are allowed to appear
           on the game board. (A string will work as an argument here.)
     """
-    self._board = np.zeros((rows, cols), dtype=np.uint8)
+    self._board = torch.LongTensor(np.zeros((rows, cols), dtype=np.uint8))
     self._layers = {
         char: np.zeros((rows, cols), dtype=np.bool_) for char in characters}
 
@@ -102,7 +103,7 @@ class BaseObservationRenderer(object):
     `board` contains only `np.uint8(0)` values and whose layers contain only
     `np.bool_(False)` values.
     """
-    self._board.fill(0)
+    self._board.mul_(0)
 
   def paint_all_of(self, curtain):
     """Copy a pattern onto the "canvas" of this `BaseObservationRenderer`.
@@ -115,7 +116,8 @@ class BaseObservationRenderer(object):
       curtain: a 2-D `np.uint8` array whose dimensions are the same as this
           `BaseObservationRenderer`'s.
     """
-    np.copyto(self._board, curtain, casting='no')
+    self._board.set_(curtain)
+    # np.copyto(self._board, curtain, casting='no')
 
   def paint_sprite(self, character, position):
     """Draw a character onto the "canvas" of this `BaseObservationRenderer`.
@@ -228,7 +230,8 @@ class BaseUnoccludedObservationRenderer(object):
       curtain: a 2-D `np.uint8` array whose dimensions are the same as this
           renderer's.
     """
-    np.copyto(self._board, curtain, casting='no')
+    # np.copyto(self._board, curtain, casting='no')
+    self._board.set_(curtain)
     for character, layer in six.iteritems(self._layers):
       np.equal(curtain, ord(character), out=layer)
 
