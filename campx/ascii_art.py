@@ -65,6 +65,101 @@ def ascii_art_to_game(art,
                       update_schedule=None,
                       z_order=None,
                       occlusion_in_layers=True):
+    """Construct a pycolab game from an ASCII art diagram.
+    This function helps to turn ASCII art diagrams like the following
+    (which is a Sokoban-like puzzle):
+        [' @@@@@@ ',
+         ' @  . @ ',        # '@' means "wall"
+         '@@ab @@ ',        # 'P' means "player"
+         '@  .c @ ',        # '.' means "box storage location"
+         '@.  dP@ ',        # 'a'-'g' are all for separate boxes
+         '@.@@@@@@',        # ' ' means "open, traversable space"
+         '@ @ @@ @',
+         '@ e  . @',
+         '@@@@@@@@',]
+    into pycolab games. The basic idea is that you supply the diagram, along with
+    hints about which characters correspond to `Sprite`s and `Drape`s and the
+    classes that implement those `Sprite`s and `Drape`s. This function then
+    returns an initialised `Engine` object, all ready for you to call the
+    `its_showtime` method and start the game.
+    Several of this function's arguments require you to supply subclasses of the
+    classes found in `things.py`. If your subclass constructors take the same
+    number of arguments as their `things.py` superclasses, then they can be
+    listed directly. Otherwise, you will need to pack the subclasses and their
+    additional `args` and `kwargs` into a `Partial` object. So, for example, if
+    you have a `Sprite` subclass with a constructor like this:
+        class MySprite(Sprite):
+          def __init__(self, corner, position, character, mood, drink_quantity):
+            ...
+    you could package `MySprite` and the "extra" arguments in any of the following
+    ways (among others):
+        Partial(MySprite, 'drowsy', 'two pints')
+        Partial(MySprite, 'yawning', drink_quantity='three pints')
+        Partial(MySprite, mood='asleep', drink_quantity='four pints')
+    Args:
+      art: An ASCII art diagram depicting a game board. This should be a list or
+          tuple whose values are all strings containing the same number of ASCII
+          characters.
+      what_lies_beneath: a single-character ASCII string that will be substituted
+          into the `art` diagram at all places where a character that keys
+          `sprites` or `drapes` is found; *or*, this can also be an entire second
+          ASCII art diagram whose values will be substituted into `art` at (only)
+          those locations. In either case, the resulting diagram will be used to
+          initialise the game's `Backdrop`.
+      sprites: a dict mapping single-character ASCII strings to `Sprite` classes
+          (not objects); or to `Partial` objects that hold the classes and "extra"
+          `args`es and `kwargs`es to use during their construction. It's fine if a
+          character used as a key doesn't appear in the `art` diagram: in this
+          case, we assume that the corresponding `Sprite` will be located at
+          `0, 0`. (If you intend your `Sprite` to be invisible, the `Sprite` will
+          have to take care of that on its own after it is built.) (Optional;
+          omit if your game has no sprites.)
+      drapes: a dict mapping single-character ASCII strings to `Drape` classes
+          (not objects); or to `Partial` objects that hold the classes and "extra"
+          `args`es and `kwargs`es to use during their construction. It's fine if
+          a character used as a key doesn't appear in the `art` diagram: in this
+          case, we assume that the `Drape`'s curtain (i.e. its mask) is completely
+          empty (i.e. False). (Optional; omit if your game has no drapes.)
+      backdrop: a `Backdrop` class (not an object); or a `Partial` object that
+          holds the class and "extra" `args` and `kwargs` to use during its
+          construction. (Optional; if unset, `Backdrop` is used directly, which
+          is fine for a game where the background scenery never changes and
+          contains no game logic.)
+      update_schedule: A list of single-character ASCII strings indicating the
+          order in which the `Sprite`s and `Drape`s should be consulted by the
+          `Engine` for updates; or, a list of lists that imposes an ordering as
+          well, but that groups the entities in each list into separate
+          update groups (refer to `Engine` documentation). (Optional; if
+          unspecified, the ordering will be arbitrary---be mindful of this if your
+          game uses advanced features like scrolling, where update order is pretty
+          important.)
+      z_order: A list of single-character ASCII strings indicating the depth
+          ordering of the `Sprite`s and `Drape`s (from back to front). (Optional;
+          if unspecified, the ordering will be the same as what's used for
+          `update_schedule`).
+      occlusion_in_layers: If `True` (the default), game entities or `Backdrop`
+          characters that occupy the same position on the game board will be
+          rendered into the `layers` member of `rendering.Observation`s with
+          "occlusion": only the entity that appears latest in the game's Z-order
+          will have its `layers` entry at that position set to `True`. If
+          `False`, all entities and `Backdrop` characters at that position will
+          have `True` in their `layers` entries there.
+          This flag does not change the rendering of the "flat" `board` member
+          of `Observation`, which always paints game entities on top of each
+          other as dictated by the Z-order.
+          **NOTE: This flag also determines the occlusion behavior in `layers`
+          arguments to all game entities' `update` methods; see docstrings in
+          [things.py] for details.**
+    Returns:
+      An initialised `Engine` object as described.
+    Raises:
+      TypeError: when `update_schedule` is neither a "flat" list of characters
+          nor a list of lists of characters.
+      ValueError: numerous causes, nearly always instances of the user not heeding
+          the requirements stipulated in Args:. The exception messages should make
+          most errors fairly easy to debug.
+    """
+
     ### 1. Set default arguments, normalise arguments, derive various things ###
 
     # Partial() holds arbitrary arguments (args and kwargs) that you want to pass
