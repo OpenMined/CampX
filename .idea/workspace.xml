@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eb1d050c-94fb-4c88-8c17-1c806ce62c6a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campx/ascii_art.py" beforeDir="false" afterPath="$PROJECT_DIR$/campx/ascii_art.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/campx/things.py" beforeDir="false" afterPath="$PROJECT_DIR$/campx/things.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/examples/Simple Agent Example.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/Simple Agent Example.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/campx/engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/campx/engine.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -56,11 +53,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/campx/engine.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="336">
-              <caret line="260" column="22" selection-start-line="260" selection-start-column="14" selection-end-line="260" selection-end-column="22" />
+            <state relative-caret-position="396">
+              <caret line="414" column="60" selection-start-line="414" selection-start-column="60" selection-end-line="414" selection-end-column="60" />
               <folding>
                 <element signature="e#636#648#0" expanded="true" />
               </folding>
@@ -101,11 +98,11 @@
           </provider>
         </entry>
       </file>
-      <file pinned="false" current-in-tab="true">
+      <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/campx/things.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="846">
-              <caret line="393" lean-forward="true" selection-start-line="393" selection-end-line="393" />
+            <state relative-caret-position="858">
+              <caret line="393" selection-start-line="393" selection-end-line="393" />
             </state>
           </provider>
         </entry>
@@ -114,7 +111,7 @@
         <entry file="file://$PROJECT_DIR$/campx/ascii_art.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="1183">
-              <caret line="121" column="34" lean-forward="true" selection-start-line="121" selection-start-column="34" selection-end-line="121" selection-end-column="34" />
+              <caret line="121" column="34" selection-start-line="121" selection-start-column="34" selection-end-line="121" selection-end-column="34" />
             </state>
           </provider>
         </entry>
@@ -159,10 +156,10 @@
         <option value="$PROJECT_DIR$/README.md" />
         <option value="$PROJECT_DIR$/campx/agent.py" />
         <option value="$PROJECT_DIR$/campx/plot.py" />
-        <option value="$PROJECT_DIR$/campx/engine.py" />
         <option value="$PROJECT_DIR$/campx/rendering.py" />
         <option value="$PROJECT_DIR$/campx/ascii_art.py" />
         <option value="$PROJECT_DIR$/campx/things.py" />
+        <option value="$PROJECT_DIR$/campx/engine.py" />
       </list>
     </option>
   </component>
@@ -306,27 +303,27 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/campx/engine.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="336">
-          <caret line="260" column="22" selection-start-line="260" selection-start-column="14" selection-end-line="260" selection-end-column="22" />
-          <folding>
-            <element signature="e#636#648#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/campx/ascii_art.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="1183">
-          <caret line="121" column="34" lean-forward="true" selection-start-line="121" selection-start-column="34" selection-end-line="121" selection-end-column="34" />
+          <caret line="121" column="34" selection-start-line="121" selection-start-column="34" selection-end-line="121" selection-end-column="34" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/campx/things.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="846">
-          <caret line="393" lean-forward="true" selection-start-line="393" selection-end-line="393" />
+        <state relative-caret-position="858">
+          <caret line="393" selection-start-line="393" selection-end-line="393" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/campx/engine.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="396">
+          <caret line="414" column="60" selection-start-line="414" selection-start-column="60" selection-end-line="414" selection-end-column="60" />
+          <folding>
+            <element signature="e#636#648#0" expanded="true" />
+          </folding>
         </state>
       </provider>
     </entry>
