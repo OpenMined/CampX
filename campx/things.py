@@ -390,3 +390,10 @@ class Sprite(object):
   @property
   def visible(self):
     return self._visible
+
+
+class FixedDrape(Drape):
+
+    def update(self, actions, board, layers, backdrop, all_things, the_plot):
+      ""
+
