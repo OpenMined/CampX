@@ -2,7 +2,8 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eb1d050c-94fb-4c88-8c17-1c806ce62c6a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/campx/engine.py" beforeDir="false" afterPath="$PROJECT_DIR$/campx/engine.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/Simple Agent Example.ipynb" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/Simple Wall Example.ipynb" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
