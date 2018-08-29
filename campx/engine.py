@@ -328,7 +328,7 @@ class Engine(object):
         self._value_error_if_characters_are_bad(character, mandatory_len=1)
         self._runtime_error_if_characters_claimed_already(character)
         # Construct a new curtain for the drape.
-        curtain = torch.ByteTensor(np.zeros((self._rows, self._cols), dtype=np.bool_))
+        curtain = torch.ByteTensor(np.zeros((self._rows, self._cols)))
         # Fill the curtain with the prefill data.
         curtain.set_(prefill)
 
