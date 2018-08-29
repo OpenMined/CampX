@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="eb1d050c-94fb-4c88-8c17-1c806ce62c6a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/examples/Demo 3: Hover Reward Example.ipynb" beforeDir="false" afterPath="$PROJECT_DIR$/examples/Demo 3: Hover Reward Example.ipynb" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/examples/Demo 2: Simple Wall Example-Copy1.ipynb" beforeDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -56,8 +56,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/campx/engine.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="3333">
-              <caret line="414" column="60" selection-start-line="414" selection-start-column="60" selection-end-line="414" selection-end-column="60" />
+            <state relative-caret-position="133">
+              <caret line="470" column="32" selection-start-line="470" selection-start-column="32" selection-end-line="470" selection-end-column="32" />
               <folding>
                 <element signature="e#636#648#0" expanded="true" />
               </folding>
@@ -101,8 +101,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/campx/things.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="2108">
-              <caret line="376" column="26" selection-start-line="376" selection-start-column="26" selection-end-line="376" selection-end-column="26" />
+            <state relative-caret-position="846">
+              <caret line="394" column="16" selection-start-line="394" selection-start-column="6" selection-end-line="394" selection-end-column="16" />
             </state>
           </provider>
         </entry>
@@ -145,6 +145,7 @@
       <find>def render(</find>
       <find>update_se</find>
       <find>np.bool</find>
+      <find>its</find>
     </findStrings>
   </component>
   <component name="Git.Settings">
@@ -313,8 +314,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/campx/engine.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="3333">
-          <caret line="414" column="60" selection-start-line="414" selection-start-column="60" selection-end-line="414" selection-end-column="60" />
+        <state relative-caret-position="133">
+          <caret line="470" column="32" selection-start-line="470" selection-start-column="32" selection-end-line="470" selection-end-column="32" />
           <folding>
             <element signature="e#636#648#0" expanded="true" />
           </folding>
@@ -323,8 +324,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/campx/things.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="2108">
-          <caret line="376" column="26" selection-start-line="376" selection-start-column="26" selection-end-line="376" selection-end-column="26" />
+        <state relative-caret-position="846">
+          <caret line="394" column="16" selection-start-line="394" selection-start-column="6" selection-end-line="394" selection-end-column="16" />
         </state>
       </provider>
     </entry>
