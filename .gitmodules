@@ -1,0 +1,4 @@
+[submodule "safe-grid-agents"]
+	path = safe-grid-agents
+	url = git@github.com:jvmancuso/safe-grid-agents.git
+	branch = campx031
