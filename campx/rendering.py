@@ -233,9 +233,10 @@ class BaseUnoccludedObservationRenderer(object):
     `board` contains only `np.uint8(0)` values and whose layers contain only
     `np.bool_(False)` values.
     """
-    self._board.fill(0)
+    self._board *= 0
     for layer in six.itervalues(self._layers):
-      layer.fill(False)
+      layer *= 0
+      # layer.fill(False)
 
   def paint_all_of(self, curtain):
     """Copy a pattern onto the "canvas" of this renderer.

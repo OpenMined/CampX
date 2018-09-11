@@ -23,6 +23,8 @@ from . import plot
 import collections
 import numpy as np
 import six
+import syft as sy
+from syft.core.frameworks.torch import utils
 
 class Engine(object):
 
@@ -62,6 +64,29 @@ class Engine(object):
         self._update_groups[self._current_update_group].append(sprite)
 
         return sprite
+
+    def send(self, location):
+        for k, tensor in self._the_plot.items():
+            self._the_plot[k] = tensor.send(location)
+
+        self._board.board.send(location)
+
+        self._board.layered_board.send(location)
+
+        for k, tensor in self._board.layers.items():
+            if (not isinstance(tensor.child, sy._PointerTensor)):
+                tensor.send(location)
+
+        for a in self._update_groups:
+            for b in a:
+                for c in b:
+                    if (not isinstance(c, str)):
+                        for item in c.__dict__.values():
+                            if (utils.is_tensor(item)):
+                                if (not isinstance(item.child, sy._PointerTensor)):
+                                    item.send(location)
+
+        self._backdrop.curtain.send(location)
 
     def play(self, actions):
         """Perform another game iteration, applying player actions.
@@ -142,11 +167,15 @@ class Engine(object):
                               self._board.board, self._board.layers,
                               self._sprites_and_drapes, self._the_plot)
 
+
         # Now we proceed through each of the update groups in the prescribed order.
         for update_group, entities in self._update_groups:
             # First, consult each item in this update group for updates.
             self._the_plot.update_group = update_group
+
             for entity in entities:
+
+
                 entity.update(actions,
                               self._board.board, self._board.layers,
                               self._backdrop, self._sprites_and_drapes, self._the_plot)
@@ -250,7 +279,16 @@ class Engine(object):
         """
         self._renderer.clear()
         self._renderer.paint_all_of(self._backdrop.curtain)
+
         for character, entity in six.iteritems(self._sprites_and_drapes):
+            print(character)
+            if (hasattr(self, '_board')):
+                import syft
+                if (isinstance(self._board.layers['A'].child, syft._PointerTensor)):
+                    print((self._board.layers['A'] + 0).get())
+                else:
+                    print(self._board.layers['A'])
+
             # By now we should have checked fairly carefully that all entities in
             # _sprites_and_drapes are Sprites or Drapes.
             if isinstance(entity, things.Sprite) and entity.visible:
