@@ -1,0 +1,2 @@
+-e git://github.com/OpenMined/PySyft.git#egg=pysyft
+torch==0.3.0.post4
