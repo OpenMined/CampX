@@ -281,13 +281,13 @@ class Engine(object):
         self._renderer.paint_all_of(self._backdrop.curtain)
 
         for character, entity in six.iteritems(self._sprites_and_drapes):
-            print(character)
-            if (hasattr(self, '_board')):
-                import syft
-                if (isinstance(self._board.layers['A'].child, syft._PointerTensor)):
-                    print((self._board.layers['A'] + 0).get())
-                else:
-                    print(self._board.layers['A'])
+            # print(character)
+            # if (hasattr(self, '_board')):
+                # import syft
+                # if (isinstance(self._board.layers['A'].child, syft._PointerTensor)):
+                    # print((self._board.layers['A'] + 0).get())
+                # else:
+                    # print(self._board.layers['A'])
 
             # By now we should have checked fairly carefully that all entities in
             # _sprites_and_drapes are Sprites or Drapes.
