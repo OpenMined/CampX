@@ -16,6 +16,7 @@ python3 -m venv venv
 source venv/bin/activate
 pip install --upgrade pip
 pip install -r requirements.txt
+python setup.py install # installs campx from latest git build
 python -m ipykernel install --user --name=campx
-jupyter notebook # select campx kernel 
+jupyter notebook # select campx kernel
 ```
