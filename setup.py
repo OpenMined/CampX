@@ -17,7 +17,7 @@ def my_test_suite():
     return test_suite
 
 
-requirements = read('requirements.txt').split()
+requirements = None # read('requirements.txt').split()
 
 setup(
     name="campx",
