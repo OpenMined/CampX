@@ -8,3 +8,12 @@ In order to get everything, use git's `--recursive` flag:
 git clone --recursive https://github.com/OpenMined/CampX.git
 ```
 This will also download the [`safe-grid-agents`](https://github.com/jvmancuso/safe-grid-agents) and [`ai-safety-gridworlds`](https://github.com/deepmind/ai-safety-gridworlds) repos, which can be used for training fast plaintext agents in safety-minded gridworlds.  See those repos' respective READMEs for installation/usage instructions.
+
+### Install
+
+```sh
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
