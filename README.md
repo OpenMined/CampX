@@ -20,3 +20,13 @@ python setup.py install # installs campx from latest git build
 python -m ipykernel install --user --name=campx
 jupyter notebook # select campx kernel
 ```
+
+### Update the Code
+
+```sh
+git pull
+python setup.py install
+# install the software and make requirements
+# remove the campx from requirements
+pip freeze | sed 's/@[a-z0-9]\+//' > requirements.txt
+```
