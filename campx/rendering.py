@@ -192,9 +192,9 @@ class BaseObservationRenderer(object):
 
     self._layered_board = torch.cat(lb_list).view(len(lb_list),
                                                   self.rows,
-                                                  self.cols )
+                                                  self.cols ).long()
 
-    return Observation(board=self._board,
+    return Observation(board=self._board.long(),
                        layers=self._layers,
                        layered_board=self._layered_board)
 

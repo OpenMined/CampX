@@ -88,6 +88,29 @@ class Engine(object):
 
         self._backdrop.curtain.send(location)
 
+    def share(self, *workers):
+        for k, tensor in self._the_plot.items():
+            self._the_plot[k] = tensor.long().share(*workers)
+
+        self._board.board.share(*workers)
+
+        self._board.layered_board.share(*workers)
+
+        for k, tensor in self._board.layers.items():
+            if (not isinstance(tensor.child, sy._SNNTensor)):
+                self._board.layers[k] = tensor.long().share(*workers)
+
+        for a in self._update_groups:
+            for b in a:
+                for c in b:
+                    if (not isinstance(c, str)):
+                        for key, item in c.__dict__.items():
+                            if (utils.is_tensor(item)):
+                                if (not isinstance(item.child, sy._SNNTensor)):
+                                    c.__dict__[key] = item.long().share(*workers)
+
+        self._backdrop.curtain.share(*workers)
+
     def play(self, actions):
         """Perform another game iteration, applying player actions.
         Receives an action (or actions) from the player (or players). Consults the
