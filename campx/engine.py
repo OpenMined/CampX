@@ -150,19 +150,18 @@ class Engine(object):
             raise RuntimeError('play() was called after the episode handled by this '
                                'Engine has terminated')
 
-        # print("1")
         # Update Backdrop and all Sprites and Drapes.
         self._update_and_render(actions)
-        # print("2")
+
         # Apply all plot directives that the Backdrop, Sprites, and Drapes have
         # submitted to the Plot during the update.
         reward, discount, should_rerender = self._apply_and_clear_plot()
-        # print("3")
+
         # If directives in the Plot changed our state in any way that would change
         # the appearance of the observation (e.g. changing the z-order), we'll have
         # to re-render it before we return it.
         if should_rerender: self._render()
-        # print("4")
+
         # Return first-frame rendering to the user.
         return self._board, reward, discount
 
@@ -180,38 +179,34 @@ class Engine(object):
         """
         assert self._board, (
             '_update_and_render() called without a prior rendering of the board')
-        # print("\t1")
+
         # A new frame begins!
         self._the_plot.frame += 1
-        # print("\t2")
+
         # We start with the backdrop; it doesn't really belong to an update group,
         # or it belongs to the first update group, depending on how you look at it.
         self._the_plot.update_group = None
-        # print("\t3")
+
         self._backdrop.update(actions,
                               self._board.board, self._board.layers,
                               self._sprites_and_drapes, self._the_plot)
-        # print("\t4")
 
         # Now we proceed through each of the update groups in the prescribed order.
         for update_group, entities in self._update_groups:
-            # print("\t4a")
+
             # First, consult each item in this update group for updates.
             self._the_plot.update_group = update_group
-            # print("\t4b")
+
             for entity in entities:
-                # print("\t4aa")
 
                 entity.update(actions,
                               self._board.board, self._board.layers,
                               self._backdrop, self._sprites_and_drapes, self._the_plot)
-                # print("\t4ab")
-            # print("\t4b")
+
 
             # Next, repaint the board to reflect the updates from this update group.
             self._render()
-            # print("\t4b")
-        # print("\t5")
+
 
     def _apply_and_clear_plot(self):
         """Apply directives to this `Engine` found in its `Plot` object.
@@ -307,37 +302,27 @@ class Engine(object):
         first, then the `Sprite`s and `Drape`s according to the z-order (the order
         in which they appear in `self._sprites_and_drapes`
         """
-        # print("\t\t1")
+
         self._renderer.clear()
-        # print("\t\t renderer:2")
+
         self._renderer.paint_all_of(self._backdrop.curtain)
-        # print("\t\t3")
+
         for character, entity in six.iteritems(self._sprites_and_drapes):
-            # print("\t\t3a")
-            # print(character)
-            # if (hasattr(self, '_board')):
-                # import syft
-                # if (isinstance(self._board.layers['A'].child, syft._PointerTensor)):
-                    # print((self._board.layers['A'] + 0).get())
-                # else:
-                    # print(self._board.layers['A'])
 
             # By now we should have checked fairly carefully that all entities in
             # _sprites_and_drapes are Sprites or Drapes.
             if isinstance(entity, things.Sprite) and entity.visible:
-                # print("\t\t3b")
+
                 self._renderer.paint_sprite(character, entity.position)
-                # print("\t\t3c")
 
 
             elif isinstance(entity, things.Drape):
-                # print("\t\t3d")
+
                 self._renderer.paint_drape(character, entity.curtain)
-                # print("\t\t3e")
-        # print("\t\t4")
+
         # Done with all the layers; render the board!
         self._board = self._renderer.render()
-        # print("\t\t5")
+
 
     def _runtime_error_if_called_during_showtime(self, method_name):
         if self._showtime:

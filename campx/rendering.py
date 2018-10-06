@@ -169,41 +169,14 @@ class BaseObservationRenderer(object):
     if character not in self._layers:
       raise ValueError('character {} does not seem to be a valid character for '
                        'this game'.format(str(character)))
-    # print(self._board[curtain].get_shape())
-    # self._board[curtain] = ord(character)
-    # print("painting drape:" + character)
-    # print("board")
-    # try:
-    #   print((self._board+0).get())
-    # except:
-    #   print(self._board)
-    # print("curtain")
-    # try:
-    #   print((curtain+0).get())
-    # except:
-    #   print(curtain)
 
     if (not isinstance(curtain, torch.LongTensor)):
       curtain = curtain.long()
-    # print("mask")
-    mask = (curtain * int(ord(character)))
-    # try:
-    #   print((mask+0).get())
-    # except:
-    #   print(mask)
-    # print("reverse mask")
-    reverse_mask = (curtain * self._board)
-    # try:
-    #   print((reverse_mask+0).get())
-    # except:
-    #   print(reverse_mask)
 
+    mask = (curtain * int(ord(character)))
+    reverse_mask = (curtain * self._board)
     self._board.set_(self._board - reverse_mask + mask)
-    # print("new_board")
-    # try:
-    #   print((self._board+0).get())
-    # except:
-    #   print(self._board)
+
 
   def render(self, layered_board=False):
     """Derive an `Observation` from this `BaseObservationRenderer`'s "canvas".
@@ -220,20 +193,19 @@ class BaseObservationRenderer(object):
       presented to this `BaseObservationRenderer` since the last call to its
       `clear()` method.
     """
-    # print("\t\t\t1")
+
     # just to make a deterministic (alphabetical) order of keys
     keys = list(set(self._layers.keys()))
-    # print("\t\t\t2")
+
     lb_list = list()
     for char in keys:
-      # print("\t\t\t2a")
-      # poor man's board == ord(char
+
+      # # poor man's board == ord(char
       right = (self._board * 0 + ord(char))
-      self._layers[char] = (self._board >= right) * (self._board <= right)
-      # print("\t\t\t2b")
+      self._layers[char].set_((self._board >= right) * (self._board <= right))
+
       lb_list.append(self._layers[char])
-      # print("\t\t\t2c")
-    # print("\t\t\t3")
+
     self._layered_board = torch.cat(lb_list).view(len(lb_list),
                                                   self.rows,
                                                   self.cols ).long()
