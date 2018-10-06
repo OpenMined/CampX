@@ -208,7 +208,7 @@ class Plot(dict):
     if self._engine_directives.summed_reward is None:
       self._engine_directives.summed_reward = reward
     else:
-      self._engine_directives.summed_reward += reward
+      self._engine_directives.summed_reward = reward + self._engine_directives.summed_reward
 
   def log(self, message):
     """Log a message for eventual disposal by the game engine user.

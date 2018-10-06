@@ -121,6 +121,10 @@ class BaseObservationRenderer(object):
       curtain: a 2-D `np.uint8` array whose dimensions are the same as this
           `BaseObservationRenderer`'s.
     """
+
+    # self._board *= 0
+    # self._board = self._board + curtain
+
     self._board.set_(curtain)
     # np.copyto(self._board, curtain, casting='no')
 
@@ -161,10 +165,45 @@ class BaseObservationRenderer(object):
       ValueError: `character` is not a valid character for this game, according
           to the `Engine`'s configuration.
     """
+
     if character not in self._layers:
       raise ValueError('character {} does not seem to be a valid character for '
                        'this game'.format(str(character)))
-    self._board[curtain] = ord(character)
+    # print(self._board[curtain].get_shape())
+    # self._board[curtain] = ord(character)
+    # print("painting drape:" + character)
+    # print("board")
+    # try:
+    #   print((self._board+0).get())
+    # except:
+    #   print(self._board)
+    # print("curtain")
+    # try:
+    #   print((curtain+0).get())
+    # except:
+    #   print(curtain)
+
+    if (not isinstance(curtain, torch.LongTensor)):
+      curtain = curtain.long()
+    # print("mask")
+    mask = (curtain * int(ord(character)))
+    # try:
+    #   print((mask+0).get())
+    # except:
+    #   print(mask)
+    # print("reverse mask")
+    reverse_mask = (curtain * self._board)
+    # try:
+    #   print((reverse_mask+0).get())
+    # except:
+    #   print(reverse_mask)
+
+    self._board.set_(self._board - reverse_mask + mask)
+    # print("new_board")
+    # try:
+    #   print((self._board+0).get())
+    # except:
+    #   print(self._board)
 
   def render(self, layered_board=False):
     """Derive an `Observation` from this `BaseObservationRenderer`'s "canvas".
@@ -181,19 +220,24 @@ class BaseObservationRenderer(object):
       presented to this `BaseObservationRenderer` since the last call to its
       `clear()` method.
     """
-
+    # print("\t\t\t1")
     # just to make a deterministic (alphabetical) order of keys
     keys = list(set(self._layers.keys()))
-
+    # print("\t\t\t2")
     lb_list = list()
     for char in keys:
-      self._layers[char].set_(self._board == ord(char))
+      # print("\t\t\t2a")
+      # poor man's board == ord(char
+      right = (self._board * 0 + ord(char))
+      self._layers[char] = (self._board >= right) * (self._board <= right)
+      # print("\t\t\t2b")
       lb_list.append(self._layers[char])
-
+      # print("\t\t\t2c")
+    # print("\t\t\t3")
     self._layered_board = torch.cat(lb_list).view(len(lb_list),
                                                   self.rows,
                                                   self.cols ).long()
-
+    # print("\t\t\t4")
     return Observation(board=self._board.long(),
                        layers=self._layers,
                        layered_board=self._layered_board)
@@ -249,10 +293,19 @@ class BaseUnoccludedObservationRenderer(object):
       curtain: a 2-D `np.uint8` array whose dimensions are the same as this
           renderer's.
     """
+
     # np.copyto(self._board, curtain, casting='no')
-    self._board.set_(curtain)
+    # self._board.set_(curtain)
+    # print("\n\n\n1")
+    self._board *= 0
+    # print("\n\n\n2")
+    self._board = self._board + curtain
+    # print("\n\n\n3")
+
     for character, layer in six.iteritems(self._layers):
+      # print("\n\n\n3a")
       np.equal(curtain, ord(character), out=layer)
+      # print("\n\n\n3b")
 
   def paint_sprite(self, character, position):
     """Draw a character onto the "canvas" of this renderer.
@@ -293,6 +346,7 @@ class BaseUnoccludedObservationRenderer(object):
       ValueError: `character` is not a valid character for this game, according
           to the `Engine`'s configuration.
     """
+
     if character not in self._layers:
       raise ValueError('character {} does not seem to be a valid character for '
                        'this game'.format(str(character)))
