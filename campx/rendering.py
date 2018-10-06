@@ -202,9 +202,13 @@ class BaseObservationRenderer(object):
 
       # # poor man's board == ord(char
       right = (self._board * 0 + ord(char))
-      self._layers[char].set_((self._board >= right) * (self._board <= right))
+      newval = (self._board >= right) * (self._board <= right)
+      if(not isinstance(newval, torch.LongTensor) and isinstance(self._layers[char], torch.LongTensor)):
+        newval = newval.long()
 
-      lb_list.append(self._layers[char])
+      self._layers[char].set_(newval)
+
+      lb_list.append(self._layers[char].long())
 
     self._layered_board = torch.cat(lb_list).view(len(lb_list),
                                                   self.rows,
