@@ -68,7 +68,7 @@ snowballstemmer==1.2.1
 Sphinx==1.8.1
 sphinx-rtd-theme==0.4.1
 sphinxcontrib-websupport==1.1.0
--e git://github.com/OpenMined/PySyft.git@826e44dcaedc98d344ca3070b2be1910cd7cc844#egg=syft
+-e git://github.com/OpenMined/PySyft.git#egg=syft
 terminado==0.8.1
 testpath==0.4.1
 toml==0.9.6
