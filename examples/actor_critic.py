@@ -11,6 +11,8 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 from torch.distributions import Categorical
 
+from helpers import VISIBLE_RADIUS, Grid, Agent, Environment
+
 
 parser = argparse.ArgumentParser(description='PyTorch actor-critic example')
 parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
@@ -24,19 +26,32 @@ parser.add_argument('--log_interval', type=int, default=10, metavar='N',
 args = parser.parse_args()
 
 
-env = gym.make('CartPole-v0')
-env.seed(args.seed)
-torch.manual_seed(args.seed)
+# select the environment
+# env = gym.make('CartPole-v0')
+# env.seed(args.seed)
+# reward_threshold = env.spec.reward_threshold
+# input_size = 4
+# output_size = 2
 
+# use the gridworld environment
+env = Environment()
+visible_squares = (VISIBLE_RADIUS * 2 + 1) ** 2
+# Plus agent health, y, x
+input_size = visible_squares + 1 + 2 
+# For both action and expected value
+output_size = 4+1
+reward_threshold = 100000 # env.spec.reward_threshold
+
+torch.manual_seed(args.seed) # args.seed)
 
 SavedAction = namedtuple('SavedAction', ['log_prob', 'value'])
 
 
 class Policy(nn.Module):
-    def __init__(self, hidden_size):
+    def __init__(self, input_size, hidden_size, output_size):
         super(Policy, self).__init__()
-        self.affine1 = nn.Linear(4, hidden_size)
-        self.action_head = nn.Linear(hidden_size, 2)
+        self.affine1 = nn.Linear(input_size, hidden_size)
+        self.action_head = nn.Linear(hidden_size, output_size)
         self.value_head = nn.Linear(hidden_size, 1)
 
         self.saved_actions = []
@@ -50,7 +65,9 @@ class Policy(nn.Module):
 
 
 hidden_size = 32
-model = Policy(hidden_size=hidden_size)
+model = Policy(input_size=input_size,
+                hidden_size=hidden_size,
+                output_size=output_size)
 optimizer = optim.Adam(model.parameters(), lr=3e-2)
 eps = np.finfo(np.float32).eps.item()
 
@@ -107,9 +124,9 @@ def main():
         running_reward = running_reward * 0.99 + t * 0.01
         finish_episode()
         if i_episode % args.log_interval == 0:
-            print('Episode {}\tLast length: {:5d}\tAverage length: {:.2f}'.format(
+            print('Episode {}\tLast ep. length: {:5d}\tAv. reward: {:.2f}'.format(
                 i_episode, t, running_reward))
-        if running_reward > env.spec.reward_threshold:
+        if running_reward > reward_threshold:
             print("Solved! Running reward is now {} and "
                   "the last episode runs to {} time steps!".format(running_reward, t))
             break
