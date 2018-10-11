@@ -89,6 +89,8 @@ def finish_episode():
 
 
 def main():
+    '''Main run code.'''
+    # Initialize the running reward to track task completion.
     running_reward = 0
     for i_episode in count(1):
         state = env.reset()
