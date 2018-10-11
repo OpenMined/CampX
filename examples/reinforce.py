@@ -86,7 +86,7 @@ def main():
         for t in range(10000):
             action = select_action(state)
             state, reward, done, _ = env.step(action.data[0])
-            if args.render:
+            if args.render and (i_episode % 100 == 0):
                 env.render()
             policy.rewards.append(reward)
             if done:
