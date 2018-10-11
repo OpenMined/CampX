@@ -6,8 +6,9 @@ from collections import namedtuple
 
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
+import torch.nn.functional as F
+from torch.autograd import Variable
 from torch.distributions import Categorical
 
 
@@ -54,12 +55,13 @@ eps = np.finfo(np.float32).eps.item()
 
 
 def select_action(state):
-    state = torch.from_numpy(state).float()
+    state = Variable(torch.from_numpy(state).float())
     probs, state_value = model(state)
     m = Categorical(probs)
     action = m.sample()
+    # Save the (action log prob, state value) tuple for later processing
     model.saved_actions.append(SavedAction(m.log_prob(action), state_value))
-    return action.item()
+    return action
 
 
 def finish_episode():
@@ -71,12 +73,12 @@ def finish_episode():
     for r in model.rewards[::-1]:
         R = r + args.gamma * R
         rewards.insert(0, R)
-    rewards = torch.tensor(rewards)
+    rewards = torch.Tensor(rewards)
     rewards = (rewards - rewards.mean()) / (rewards.std() + eps)
     for (log_prob, value), r in zip(saved_actions, rewards):
-        reward = r - value.item()
+        reward = r - value.data[0] # item()
         policy_losses.append(-log_prob * reward)
-        value_losses.append(F.smooth_l1_loss(value, torch.tensor([r])))
+        value_losses.append(F.smooth_l1_loss(value, Variable(torch.Tensor([r]))))
     optimizer.zero_grad()
     loss = torch.stack(policy_losses).sum() + torch.stack(value_losses).sum()
     loss.backward()
@@ -91,7 +93,7 @@ def main():
         state = env.reset()
         for t in range(10000):  # Don't infinite loop while learning
             action = select_action(state)
-            state, reward, done, _ = env.step(action)
+            state, reward, done, _ = env.step(action.data[0])
             if args.render:
                 env.render()
             model.rewards.append(reward)
