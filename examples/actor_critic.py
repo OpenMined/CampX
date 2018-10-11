@@ -1,4 +1,5 @@
 import argparse
+import sys
 import gym
 import numpy as np
 from itertools import count
@@ -76,7 +77,13 @@ def select_action(state):
     state = Variable(torch.from_numpy(state).float())
     probs, state_value = model(state)
     m = Categorical(probs)
-    action = m.sample()
+    try:
+        action = m.sample()
+    except RuntimeError as error:
+        print(error)
+        print('m', m, 'probs', probs, 
+            'state', state, 'state_value', state_value)
+        sys.exit(0)
     # Save the (action log prob, state value) tuple for later processing
     model.saved_actions.append(SavedAction(m.log_prob(action), state_value))
     return action
