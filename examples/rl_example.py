@@ -49,13 +49,14 @@ DROP_OVER = 200000
 
 # ### The Grid
 
-MIN_PLANT_VALUE = -1
-MAX_PLANT_VALUE = 0.5
-GOAL_VALUE = 10
-EDGE_VALUE = -10
-VISIBLE_RADIUS = 1
-
 class Grid():
+    '''Define the grid interactions.'''
+    MIN_PLANT_VALUE = -1
+    MAX_PLANT_VALUE = 0.5
+    GOAL_VALUE = 10
+    EDGE_VALUE = -10
+    VISIBLE_RADIUS = 1
+    
     def __init__(self, grid_size=8, n_plants=15):
         self.grid_size = grid_size
         self.n_plants = n_plants
@@ -88,14 +89,10 @@ class Grid():
         y, x = pos
         return self.grid[y-VISIBLE_RADIUS:y+VISIBLE_RADIUS+1, x-VISIBLE_RADIUS:x+VISIBLE_RADIUS+1]
 
-# ### The Agent
-
-START_HEALTH = 1
-STEP_VALUE = -0.02
-
 class Agent:
+    '''How the agent interacts.'''
     def reset(self):
-        self.health = START_HEALTH
+        self.health = 1 # START_HEALTH
 
     def act(self, action):
         # Move according to action: 0=UP, 1=RIGHT, 2=DOWN, 3=LEFT
@@ -105,11 +102,10 @@ class Agent:
         elif action == 2: y += 1
         elif action == 3: x -= 1
         self.pos = (y, x)
-        self.health += STEP_VALUE # Gradually getting hungrier
-
-# ### The Environment
+        self.health += -0.02 # STEP_VALUE # Gradually getting hungrier
 
 class Environment:
+    '''Definition of the gridworld environment.'''
     def __init__(self):
         self.grid = Grid()
         self.agent = Agent()
@@ -169,7 +165,6 @@ class Environment:
 
         # Save in history
         self.record_step()
-
         return self.visible_state, reward, done
 
 # ## Actor-Critic network

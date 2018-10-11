@@ -18,7 +18,7 @@ parser.add_argument('--seed', type=int, default=543, metavar='N',
                     help='random seed (default: 543)')
 parser.add_argument('--render', action='store_true',
                     help='render the environment')
-parser.add_argument('--log-interval', type=int, default=10, metavar='N',
+parser.add_argument('--log_interval', type=int, default=10, metavar='N',
                     help='interval between training status logs (default: 10)')
 args = parser.parse_args()
 
@@ -29,10 +29,10 @@ torch.manual_seed(args.seed)
 
 
 class Policy(nn.Module):
-    def __init__(self):
+    def __init__(self, hidden_size):
         super(Policy, self).__init__()
-        self.affine1 = nn.Linear(4, 128)
-        self.affine2 = nn.Linear(128, 2)
+        self.affine1 = nn.Linear(4, hidden_size)
+        self.affine2 = nn.Linear(hidden_size, 2)
 
         self.saved_log_probs = []
         self.rewards = []
@@ -42,8 +42,8 @@ class Policy(nn.Module):
         action_scores = self.affine2(x)
         return F.softmax(action_scores, dim=0)
 
-
-policy = Policy()
+hidden_size = 32
+policy = Policy(hidden_size=hidden_size)
 optimizer = optim.Adam(policy.parameters(), lr=1e-2)
 eps = np.finfo(np.float32).eps.item()
 
@@ -82,7 +82,8 @@ def main():
     running_reward = 10
     for i_episode in count(1):
         state = env.reset()
-        for t in range(10000):  # Don't infinite loop while learning
+        # Don't loop forever
+        for t in range(10000):
             action = select_action(state)
             state, reward, done, _ = env.step(action.data[0])
             if args.render:
