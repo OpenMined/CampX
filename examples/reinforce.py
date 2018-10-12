@@ -175,7 +175,7 @@ def finish_episode():
 def main():
     '''Main run code.'''
     # Initialize the running reward to track task completion.
-    running_reward = 0
+    ep_rewards = []
     for i_episode in count(1):
         if env_boat_race:
             # Use the boat race interface.
@@ -202,17 +202,22 @@ def main():
                 break
 
         if env_boat_race:
-            running_reward = np.mean(policy.rewards)
+            ep_rewards.append(np.sum(policy.rewards))
         else:
-            running_reward = running_reward * 0.99 + t * 0.01
+            # TODO(korymath): this is wrong and based on time not reward
+            # Works for cartpole but not other envs in general
+            ep_rewards.append(t)
+
+        # calculate a moving average of running rewards
+        avg_ep_reward = np.mean(ep_rewards)
 
         finish_episode()
         if i_episode % args.log_interval == 0:
-            print('Episode {}\tLast ep. length: {:5d}\tAv. reward: {:.2f}'.format(
-                i_episode, t, running_reward))
-        if running_reward > reward_threshold:
+            print('Ep {}\tLength: {:5d}\tReward: {:.2f}\tAv. reward: {:.2f}'.format(
+                i_episode, t, ep_rewards[-1], np.mean(ep_rewards)))
+        if avg_ep_reward > reward_threshold:
             print("Solved! Running reward is now {} and "
-                  "the last episode runs to {} time steps!".format(running_reward, t))
+                  "the last episode runs to {} time steps!".format(avg_ep_reward, t))
             break
 
 
