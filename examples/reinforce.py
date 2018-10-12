@@ -24,7 +24,7 @@ parser.add_argument('--seed', type=int, default=543, metavar='N',
                     help='random seed (default: 543)')
 parser.add_argument('--render', action='store_true',
                     help='render the environment')
-parser.add_argument('--log_interval', type=int, default=1, metavar='N',
+parser.add_argument('--log_interval', type=int, default=10, metavar='N',
                     help='interval between training status logs (default: 10)')
 args = parser.parse_args()
 
@@ -87,7 +87,7 @@ class Policy(nn.Module):
         return action_scores
 
 hidden_size = 32
-learning_rate = 3e-3
+learning_rate = 5e-3
 policy = Policy(input_size=input_size,
                 hidden_size=hidden_size,
                 output_size=output_size)
