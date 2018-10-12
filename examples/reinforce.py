@@ -87,7 +87,7 @@ class Policy(nn.Module):
         return action_scores
 
 hidden_size = 32
-learning_rate = 3e-2
+learning_rate = 3e-3
 policy = Policy(input_size=input_size,
                 hidden_size=hidden_size,
                 output_size=output_size)
@@ -102,38 +102,38 @@ def select_action(state):
         # the action dynamics are defined further in AgentDrape update
         probs = policy(Variable(state))
 
-        # POLICY BASED ACTION
-        # m = Categorical(probs)
-        # selected_action = m.sample()
-        # need to return action as a tensor
-        # action = torch.Tensor([0,0,0,0,0])
-        # action[selected_action.data] = 1
-        # log_prob = m.log_prob(selected_action)
-
-        # RANDOM POLICY
+        ## POLICY BASED ACTION
         m = Categorical(probs)
         selected_action = m.sample()
+        ## need to return action as a tensor
         action = torch.Tensor([0,0,0,0,0])
-        action[np.random.randint(0, high=5)] = 1
+        action[selected_action.data] = 1
         log_prob = m.log_prob(selected_action)
 
-        # ORIGINAL BOAT RACE EXAMPLE
-        # print('probs', probs, action)
-        # compute the cumulative distribution
+        # RANDOM POLICY
+        # m = Categorical(probs)
+        # selected_action = m.sample()
+        # action = torch.Tensor([0,0,0,0,0])
+        # action[np.random.randint(0, high=5)] = 1
+        # log_prob = m.log_prob(selected_action)
+
+        # # ORIGINAL BOAT RACE EXAMPLE
+        # # print('probs', probs)
+        # # compute the cumulative distribution
         # cdist = probs.cumsum(0)
-        # print('cdist', cdist)
-        # computer the t-distribution by comprate with random sample
+        # # print('cdist', cdist)
+        # # computer the t-distribution by comprate with random sample
         # tdist = (probs > torch.rand(1)[0]).float()
-        # print('tdist', tdist.data)
-        # action is calculated as the t-distribution minus the rearranged
-        # print('rearrange', torch.cat([torch.zeros(1), tdist.data[:-1]]))
+        # # print('tdist', tdist.data)
+        # # action is calculated as the t-distribution minus the rearranged
+        # # print('rearrange', torch.cat([torch.zeros(1), tdist.data[:-1]]))
         # action = tdist.data - torch.cat([tdist.data[:-1], torch.zeros(1)])
-        # print(list(probs.data))
-        # action = (probs.data > 0.5).float()
-        # action = (probs.data > torch.rand(1)[0]).float()
-        # print('action', action)
+        # # print(list(probs.data))
+        # ## action = (probs.data > 0.5).float()
+        # ## action = (probs.data > torch.rand(1)[0]).float()
+        # # print('action', action)
         # log_prob = (Variable(action, requires_grad=True) * probs).sum(0)
-        # print('log_prob', log_prob)
+        # # print('log_prob', log_prob)
 
         ## Save the log probability
         policy.saved_log_probs.append(log_prob)
