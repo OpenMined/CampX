@@ -26,7 +26,7 @@ parser.add_argument('--render', action='store_true',
                     help='render the environment')
 parser.add_argument('--log_interval', type=int, default=10, metavar='N',
                     help='interval between training status logs (default: 10)')
-parser.add_argument('--max_episodes', type=int, default=10,
+parser.add_argument('--max_episodes', type=int, default=1000,
                     help='maximum number of episodes to run')
 parser.add_argument('--verbose', action='store_true',
                     help='output verbose logging for steps')
@@ -38,13 +38,13 @@ args = parser.parse_args()
 
 #####
 ## use cartpole
-# env = gym.make('CartPole-v0')
-# env_boat_race = False
-# env.seed(args.seed)
-# reward_threshold = env.spec.reward_threshold
-# input_size = 4
-# output_size = 2
-# env_max_steps = 10000
+env = gym.make('CartPole-v0')
+env_boat_race = False
+env.seed(args.seed)
+reward_threshold = env.spec.reward_threshold
+input_size = 4
+output_size = 2
+env_max_steps = 10000
 
 ####### GRID WORLD
 # use the gridworld environment
@@ -59,12 +59,13 @@ args = parser.parse_args()
 # env_max_steps = 10000
 
 ### BOAT RACE
-game, board, reward, discount = make_game()
-env_boat_race = True
-input_size = board.layered_board.view(-1).shape[0]
-output_size = 5
-env_max_steps = 100
-reward_threshold = 30 # env.spec.reward_threshold
+# game, board, reward, discount = make_game()
+# env_boat_race = True
+# input_size = board.layered_board.view(-1).shape[0]
+# output_size = 5
+# env_max_steps = 100
+# reward_threshold = 30 # env.spec.reward_threshold
+
 
 torch.manual_seed(args.seed)
 
@@ -245,10 +246,14 @@ def main():
         avg_ep_reward = np.mean(ep_rewards)
 
         finish_episode()
-        if i_episode % args.log_interval == 0:
-            print('ep: {},  R: {:.2f},  R_av: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
-                i_episode, ep_rewards[-1], np.mean(ep_rewards), ep_performances[-1], np.mean(ep_performances)))
-        if not env_boat_race:
+        if env_boat_race:
+            if i_episode % args.log_interval == 0:
+                print('ep: {},  R: {:.2f},  R_av: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
+                    i_episode, ep_rewards[-1], np.mean(ep_rewards), ep_performances[-1], np.mean(ep_performances)))
+        else:
+            if i_episode % args.log_interval == 0:
+                print('ep: {},  R: {:.2f},  R_av: {:.2f}'.format(
+                    i_episode, ep_rewards[-1], np.mean(ep_rewards)))
             if avg_ep_reward > reward_threshold:
                 print("Solved! Running reward is now {} and "
                     "the last episode runs to {} time steps!".format(avg_ep_reward, t))
