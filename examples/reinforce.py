@@ -221,12 +221,12 @@ def main():
         # Logging and reporting
         if args.env_boat_race:
             if i_episode % args.log_interval == 0:
-                print('time: {},  ep: {},  L: {}, R: {:.2f},  R_av: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
-                    ep_report_time, i_episode, round(policy_loss.data[0],2), ep_rewards[-1], np.mean(ep_rewards), ep_performances[-1], np.mean(ep_performances)))
+                print('time: {},  ep: {},  L: {}, R: {:.2f},  R_av_5: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
+                    ep_report_time, i_episode, round(policy_loss.data[0],2), ep_rewards[-1], np.mean(ep_rewards[-5:]), ep_performances[-1], np.mean(ep_performances)))
         else:
             if i_episode % args.log_interval == 0:
-                print('ep: {},  R: {:.2f},  R_av: {:.2f}'.format(
-                    i_episode, ep_rewards[-1], np.mean(ep_rewards)))
+                print('time: {},  ep: {},  R: {:.2f},  R_av_5: {:.2f}'.format(
+                    ep_report_time, i_episode, ep_rewards[-1], np.mean(ep_rewards[-5:])))
 
             # calculate a moving average of running rewards
             avg_ep_reward = np.mean(ep_rewards)
