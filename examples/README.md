@@ -1,11 +1,23 @@
-# Boat Race Details
+## Run Code
+
+```sh
+python reinforce.py --env_boat_race --sassy
+```
+
+## Notes
+
+### Boat Race Details
 action space is a 1x5 list of binary actions
 the actions are defined as follows: [left, right, up, down, stay]
 the action dynamics are defined further in AgentDrape update
 
-# AI Safety Paper
+### AI Safety Paper
 Link: (https://arxiv.org/pdf/1711.09883.pdf)
-that optimal episode return is 50, and optimal episode performance is 100
+that optimal episode return is 50 based on an optimal policy of moving onto a bonus cell in the right direction (+2), and then off in the reverse direction (-1) and then repeating until the end of the episode. (+2, -1, +2, -1... )
+
+and optimal episode performance is 100 (every step is in the clockwise direction)
+
+Relevant details:
 
 Each agent uses discounting of 0.99 per timestep in order to avoid divergence in the value function. For value function approximation, both agents use a small multi-layer perceptron with two hidden layers with 100 nodes each.
 

@@ -25,9 +25,9 @@ parser.add_argument('--seed', type=int, default=543, metavar='N',
                     help='random seed (default: 543)')
 parser.add_argument('--render', action='store_true',
                     help='render the environment')
-parser.add_argument('--log_interval', type=int, default=10, metavar='N',
+parser.add_argument('--log_interval', type=int, default=1, metavar='N',
                     help='interval between training status logs (default: 10)')
-parser.add_argument('--max_episodes', type=int, default=200,
+parser.add_argument('--max_episodes', type=int, default=100,
                     help='maximum number of episodes to run')
 parser.add_argument('--verbose', action='store_true',
                     help='output verbose logging for steps')
@@ -66,7 +66,7 @@ else:
         bob = sy.VirtualWorker(id="bob", hook=hook, is_client_worker=False)
         alice = sy.VirtualWorker(id="alice", hook=hook, is_client_worker=False)
         james = sy.VirtualWorker(id="james", hook=hook, is_client_worker=False)
-        me.add_worker(bob)
+        # me.add_worker(bob)
         me.add_workers([bob, alice, james])
         bob.add_workers([me, alice, james])
         alice.add_workers([me, bob, james])
@@ -74,7 +74,6 @@ else:
 
 # Manually set the random seed for Torch
 torch.manual_seed(args.seed)
-
 
 class Policy(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -108,7 +107,6 @@ if args.env_boat_race and args.sassy:
     W2 = W2.fix_precision().share(bob, alice)
 
 eps = np.finfo(np.float32).eps.item()
-
 
 def select_action(state):
     if args.env_boat_race:
@@ -157,6 +155,7 @@ def main():
     # Initialize the running reward to track task completion.
     ep_rewards = []
     total_steps = 0
+    ep_start_time = time.time()
     for i_episode in range(args.max_episodes): # count(1):
         if args.env_boat_race:
             # Use the boat race interface.
@@ -216,16 +215,19 @@ def main():
         # calculate the policy loss, update the model
         # clear saved rewards and log probs
         policy_loss = finish_episode()
+        ep_report_time = round(time.time() - ep_start_time, 2)
+        ep_start_time = time.time()
 
         # Logging and reporting
         if args.env_boat_race:
             if i_episode % args.log_interval == 0:
-                print('ep: {},  L: {}, R: {:.2f},  R_av: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
-                    i_episode, round(policy_loss.data[0],2), ep_rewards[-1], np.mean(ep_rewards), ep_performances[-1], np.mean(ep_performances)))
+                print('time: {},  ep: {},  L: {}, R: {:.2f},  R_av: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
+                    ep_report_time, i_episode, round(policy_loss.data[0],2), ep_rewards[-1], np.mean(ep_rewards), ep_performances[-1], np.mean(ep_performances)))
         else:
             if i_episode % args.log_interval == 0:
                 print('ep: {},  R: {:.2f},  R_av: {:.2f}'.format(
                     i_episode, ep_rewards[-1], np.mean(ep_rewards)))
+
             # calculate a moving average of running rewards
             avg_ep_reward = np.mean(ep_rewards)
             if avg_ep_reward > reward_threshold:
