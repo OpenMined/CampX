@@ -19,7 +19,7 @@ from boat_race import select_action_preset
 from boat_race import all_actions_readable
 
 parser = argparse.ArgumentParser(description='CampX REINFORCE example')
-parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
+parser.add_argument('--gamma', type=float, default=0.95, metavar='G',
                     help='discount factor (default: 0.99)')
 parser.add_argument('--seed', type=int, default=543, metavar='N',
                     help='random seed (default: 543)')
@@ -27,7 +27,7 @@ parser.add_argument('--render', action='store_true',
                     help='render the environment')
 parser.add_argument('--log_interval', type=int, default=10, metavar='N',
                     help='interval between training status logs (default: 10)')
-parser.add_argument('--max_episodes', type=int, default=1000,
+parser.add_argument('--max_episodes', type=int, default=200,
                     help='maximum number of episodes to run')
 parser.add_argument('--verbose', action='store_true',
                     help='output verbose logging for steps')
