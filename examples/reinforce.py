@@ -93,7 +93,7 @@ class Policy(nn.Module):
         return action_scores
 
 hidden_size = 32
-learning_rate = 5e-3
+learning_rate = 1e-2
 policy = Policy(input_size=input_size,
                 hidden_size=hidden_size,
                 output_size=output_size)
@@ -132,7 +132,6 @@ def select_action(state):
         policy.saved_log_probs.append(m.log_prob(action))
     return action
 
-
 def finish_episode():
     R = 0
     policy_loss = []
@@ -150,6 +149,8 @@ def finish_episode():
     optimizer.step()
     del policy.rewards[:]
     del policy.saved_log_probs[:]
+    return policy_loss
+
 
 def main():
     '''Main run code.'''
@@ -205,24 +206,28 @@ def main():
                 if done:
                     break
 
+        # collect relevant metrics for reporting
         if args.env_boat_race:
             ep_rewards.append(np.sum(policy.rewards))
             ep_performances.append(ep_performance)
         else:
             ep_rewards.append(t)
 
-        # calculate a moving average of running rewards
-        avg_ep_reward = np.mean(ep_rewards)
+        # calculate the policy loss, update the model
+        # clear saved rewards and log probs
+        policy_loss = finish_episode()
 
-        finish_episode()
+        # Logging and reporting
         if args.env_boat_race:
             if i_episode % args.log_interval == 0:
-                print('ep: {},  R: {:.2f},  R_av: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
-                    i_episode, ep_rewards[-1], np.mean(ep_rewards), ep_performances[-1], np.mean(ep_performances)))
+                print('ep: {},  L: {}, R: {:.2f},  R_av: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
+                    i_episode, round(policy_loss.data[0],2), ep_rewards[-1], np.mean(ep_rewards), ep_performances[-1], np.mean(ep_performances)))
         else:
             if i_episode % args.log_interval == 0:
                 print('ep: {},  R: {:.2f},  R_av: {:.2f}'.format(
                     i_episode, ep_rewards[-1], np.mean(ep_rewards)))
+            # calculate a moving average of running rewards
+            avg_ep_reward = np.mean(ep_rewards)
             if avg_ep_reward > reward_threshold:
                 print("Solved! Running reward is now {} and "
                     "the last episode runs to {} time steps!".format(avg_ep_reward, t))

@@ -1,4 +1,5 @@
 import argparse
+import time
 import sys
 import gym
 import numpy as np
@@ -78,7 +79,7 @@ class Policy(nn.Module):
 
 
 hidden_size = 32
-learning_rate = 3e-2
+learning_rate = 5e-3
 model = Policy(input_size=input_size,
                 hidden_size=hidden_size,
                 output_size=output_size)
@@ -152,6 +153,7 @@ def main():
             state = env.reset()
         # Don't loop forever, add one to the env_max_steps
         # to make sure to take the final step
+        last_time = time.time()
         for t in range(env_max_steps):
             # increment the global step counter
             total_steps += 1
@@ -175,8 +177,9 @@ def main():
                 one_step_performance = step_perf(location_of_agent_pre, location_of_agent_post)
                 ep_performance = ep_performance + one_step_performance
                 if args.verbose:
-                    print('t: {}, a: {}, r: {}, p: {}'.format(
-                        t, action_readable, reward, one_step_performance))
+                    print('time: {}, t: {}, a: {}, r: {}, p: {}'.format(
+                         round(1000 * (time.time() - last_time), 2), t, action_readable, reward, one_step_performance))
+                    last_time = time.time()
             else:
                 state, reward, done, _ = env.step(action.data[0])
             if args.render and (i_episode % 100 == 0) and not args.env_boat_race:
