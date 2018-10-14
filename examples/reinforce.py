@@ -1,6 +1,7 @@
 import argparse
 import sys
 import gym
+import time
 import numpy as np
 from itertools import count
 
@@ -34,6 +35,8 @@ parser.add_argument('--action_preset', action='store_true',
                     help='use preset actions, useful for debugging')
 parser.add_argument('--env_boat_race', action='store_true',
                     help='use boat race environment')
+parser.add_argument('--sassy', action='store_true',
+                    help='secret agent in secret environment')
 args = parser.parse_args()
 
 # Select and define the environment
@@ -44,13 +47,30 @@ if not args.env_boat_race:
     input_size = 4
     output_size = 2
     env_max_steps = 10000
-
 else:
     game, board, reward, discount = make_game()
     input_size = board.layered_board.view(-1).shape[0]
     output_size = 5
     env_max_steps = 100
     reward_threshold = 30 # env.spec.reward_threshold
+    if args.sassy:
+        from campx import things
+        from campx.ascii_art import ascii_art_to_game, Partial
+        from campx import engine
+        import syft as sy
+        from syft.core.frameworks.torch import utils
+
+        hook = sy.TorchHook(verbose=True)
+        me = hook.local_worker
+        me.is_client_worker = False
+        bob = sy.VirtualWorker(id="bob", hook=hook, is_client_worker=False)
+        alice = sy.VirtualWorker(id="alice", hook=hook, is_client_worker=False)
+        james = sy.VirtualWorker(id="james", hook=hook, is_client_worker=False)
+        me.add_worker(bob)
+        me.add_workers([bob, alice, james])
+        bob.add_workers([me, alice, james])
+        alice.add_workers([me, bob, james])
+        james.add_workers([me, bob, alice])
 
 # Manually set the random seed for Torch
 torch.manual_seed(args.seed)
@@ -77,7 +97,16 @@ learning_rate = 5e-3
 policy = Policy(input_size=input_size,
                 hidden_size=hidden_size,
                 output_size=output_size)
-optimizer = optim.Adam(policy.parameters(), lr=learning_rate)
+optimizer = optim.Adam(policy.parameters(),
+    lr=learning_rate)
+
+if args.env_boat_race and args.sassy:
+    # Share the weight data with campx sassy protocol
+    W = policy.affine1.weight.data
+    W = W.fix_precision().share(bob, alice)
+    W2 = policy.affine2.weight.data
+    W2 = W2.fix_precision().share(bob, alice)
+
 eps = np.finfo(np.float32).eps.item()
 
 
@@ -112,8 +141,7 @@ def finish_episode():
         R = r + args.gamma * R
         rewards.insert(0, R)
     rewards = torch.Tensor(rewards)
-    # TODO(korymath): test if normalization helps
-    # rewards = (rewards - rewards.mean()) / (rewards.std() + eps)
+    rewards = (rewards - rewards.mean()) / (rewards.std() + eps)
     for log_prob, reward in zip(policy.saved_log_probs, rewards):
         policy_loss.append(-log_prob * reward)
     optimizer.zero_grad()
@@ -141,6 +169,7 @@ def main():
             state = env.reset()
         # Don't loop forever, add one to the env_max_steps
         # to make sure to take the final step
+        last_time = time.time()
         for t in range(env_max_steps):
             # increment the global step counter
             total_steps += 1
@@ -164,8 +193,9 @@ def main():
                 one_step_performance = step_perf(location_of_agent_pre, location_of_agent_post)
                 ep_performance = ep_performance + one_step_performance
                 if args.verbose:
-                    print('t: {}, a: {}, r: {}, p: {}'.format(
-                        t, action_readable, reward, one_step_performance))
+                    print('time: {}, t: {}, a: {}, r: {}, p: {}'.format(
+                         round(1000 * (time.time() - last_time), 2), t, action_readable, reward, one_step_performance))
+                    last_time = time.time()
             else:
                 state, reward, done, _ = env.step(action.data[0])
             if args.render and (i_episode % 100 == 0) and not args.env_boat_race:
