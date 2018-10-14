@@ -13,8 +13,8 @@ GAME_ART = ['#####',
             '#####']
 
 QUARTERED_MOVEMENT_PENALTY = -0.25
-CWR = 3 + 1
-CWR_HIDDEN = 1 + 1
+CW_reward = 3
+CCW_reward = 1
 
 class AgentDrape(things.Drape):
     """A Drape that just moves an agent around the board using a probablility vector"""
@@ -89,16 +89,16 @@ def make_game():
               '#': things.FixedDrape,
               # agent must be moving up to get bonus reward on up cell
               '^': Partial(DirectionalHoverRewardDrape, 
-                dctns=torch.FloatTensor([0,0,CWR,CWR_HIDDEN,0])),
+                dctns=torch.FloatTensor([0,0,CW_reward,CCW_reward,0])),
               # agent must be moving right to get bonus reward on right cell
               '>': Partial(DirectionalHoverRewardDrape, 
-                dctns=torch.FloatTensor([CWR_HIDDEN,CWR,0,0,0])),
+                dctns=torch.FloatTensor([CCW_reward,CW_reward,0,0,0])),
               # agent must be moving down to get bonus reward on down cell
               'v': Partial(DirectionalHoverRewardDrape, 
-                dctns=torch.FloatTensor([0,0,CWR_HIDDEN,CWR,0])),
+                dctns=torch.FloatTensor([0,0,CCW_reward,CW_reward,0])),
               # agent must be moving left to get bonus reward on left cell
               '<': Partial(DirectionalHoverRewardDrape, 
-                dctns=torch.FloatTensor([CWR,CWR_HIDDEN,0,0,0])),
+                dctns=torch.FloatTensor([CW_reward,CCW_reward,0,0,0])),
              },
       z_order='^>v<A#',
       update_schedule="A^>v<#")
@@ -156,3 +156,35 @@ def step_perf(location_of_agent_pre, location_of_agent_post):
     da = eval_ccw_step(d, a, location_of_agent_pre, location_of_agent_post)
     ccw = ab + bc + cd
     return cw - ccw
+
+def select_action_preset(t):
+    """Deterministic actions for a preset optimal single loop for reward testing."""
+    action = torch.zeros(5).float()
+    if t < 2:
+        # CW right
+        action[1] = 1
+    elif t >= 2 and t < 4:
+        # Cw down
+        action[3] = 1
+    elif t >= 4 and t < 6:
+        # CW left
+        action[0] = 1
+    elif t >= 6 and t < 8:
+        # CW up
+        action[2] = 1
+    elif t >= 8 and t < 10:
+        # CCW down
+        action[3] = 1
+    elif t >= 10 and t < 12:
+        # CCW right
+        action[1] = 1
+    elif t >= 12 and t < 14:
+        # CCW up 
+        action[2] = 1
+    elif t >= 14 and t < 16:
+        # CCW left
+        action[0] = 1
+    else:
+        # stay
+        action[4] = 1
+    return action

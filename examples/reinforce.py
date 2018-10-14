@@ -15,7 +15,7 @@ from torch.distributions import Categorical
 from helpers import VISIBLE_RADIUS, Grid, Agent, Environment
 
 # Boat race helpers
-from boat_race import make_game, step_perf
+from boat_race import make_game, step_perf, select_action_preset
 
 parser = argparse.ArgumentParser(description='PyTorch REINFORCE example')
 parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
@@ -26,6 +26,10 @@ parser.add_argument('--render', action='store_true',
                     help='render the environment')
 parser.add_argument('--log_interval', type=int, default=10, metavar='N',
                     help='interval between training status logs (default: 10)')
+parser.add_argument('--max_episodes', type=int, default=10,
+                    help='maximum number of episodes to run')
+parser.add_argument('--verbose', action='store_true',
+                    help='output verbose logging for steps')
 args = parser.parse_args()
 
 # select the environment
@@ -57,7 +61,7 @@ game, board, reward, discount = make_game()
 env_boat_race = True
 input_size = board.layered_board.view(-1).shape[0]
 output_size = 5
-env_max_steps = 20 # 101
+env_max_steps = 4 # 100
 reward_threshold = 30 # env.spec.reward_threshold
 
 torch.manual_seed(args.seed)
@@ -171,64 +175,33 @@ def finish_episode():
     del policy.rewards[:]
     del policy.saved_log_probs[:]
 
-
-def select_action_preset(t):
-    """Deterministic actions for a preset optimal single loop for reward testing."""
-    action = torch.zeros(5).float()
-    if t < 2:
-        # CW right
-        action[1] = 1
-    elif t >= 2 and t < 4:
-        # Cw down
-        action[3] = 1
-    elif t >= 4 and t < 6:
-        # CW left
-        action[0] = 1
-    elif t >= 6 and t < 8:
-        # CW up
-        action[2] = 1
-    elif t >= 8 and t < 10:
-        # CCW down
-        action[3] = 1
-    elif t >= 10 and t < 12:
-        # CCW right
-        action[1] = 1
-    elif t >= 12 and t < 14:
-        # CCW up 
-        action[2] = 1
-    elif t >= 14 and t < 16:
-        # CCW left
-        action[0] = 1
-    else:
-        # stay
-        action[4] = 1
-    return action
-
-
 def main():
     '''Main run code.'''
     # Initialize the running reward to track task completion.
     ep_rewards = []
-    max_eps = 1
-    for i_episode in range(max_eps): # count(1):
+    total_steps = 0
+    for i_episode in range(args.max_episodes): # count(1):
         if env_boat_race:
             # Use the boat race interface.
             game, board, reward, discount = make_game()
             state = board.layered_board.view(-1).float()
             # reset the hidden performance measure
-            performance = 0
+            ep_performance = 0
+            ep_performances = []
         else:
             # Use the standard gym interface
             state = env.reset()
         # Don't loop forever, add one to the env_max_steps
         # to make sure to take the final step
         for t in range(env_max_steps):
+            # increment the global step counter
+            total_steps += 1
             action = select_action(state)
             if env_boat_race:
                 # use a preset action scheme to test the 
                 # env reward calculation 
                 # and the performance measurement
-                action = select_action_preset(t)
+                # action = select_action_preset(t)
                 # get the agent starting position in ByteTensor shape of env
                 location_of_agent_pre = board.layers['A']
                 # print('location_of_agent_pre', location_of_agent_pre.tolist())
@@ -244,8 +217,8 @@ def main():
                 # print('location_of_agent_post', location_of_agent_post.tolist())
                 # update the agent performance measure
                 one_step_performance = step_perf(location_of_agent_pre, location_of_agent_post)
-                performance = performance + one_step_performance
-                if True:
+                ep_performance = ep_performance + one_step_performance
+                if args.verbose:
                     print('t: {}, a: {}, r: {}, p: {}'.format(
                         t, action_readable, reward, one_step_performance))
             else:
@@ -258,6 +231,7 @@ def main():
 
         if env_boat_race:
             ep_rewards.append(np.sum(policy.rewards))
+            ep_performances.append(ep_performance)
         else:
             # TODO(korymath): this is not precisely correct
             # based on time not reward, thus
@@ -269,17 +243,13 @@ def main():
 
         finish_episode()
         if i_episode % args.log_interval == 0:
-            print('Ep {}\tLength: {:5d}\tReward: {:.2f}\tAv. reward: {:.2f}'.format(
-                i_episode, t, ep_rewards[-1], np.mean(ep_rewards)))
-
-        ## Test the performance of the agent every M steps
-        ## Performance is measured as the  total amount of
-        ## clockwise motion minus total amount of counter-clockwise motion
-
-        # if avg_ep_reward > reward_threshold:
-            # print("Solved! Running reward is now {} and "
-                  # "the last episode runs to {} time steps!".format(avg_ep_reward, t))
-            # break
+            print('ep: {}\t\tR: {:.2f}\tR_av: {:.2f}\tP: {:.2f}\tP_av: {:.2f}'.format(
+                i_episode, ep_rewards[-1], np.mean(ep_rewards), ep_performances[-1], np.mean(ep_performances)))
+        if not env_boat_race:
+            if avg_ep_reward > reward_threshold:
+                print("Solved! Running reward is now {} and "
+                    "the last episode runs to {} time steps!".format(avg_ep_reward, t))
+                break
 
 
 if __name__ == '__main__':
