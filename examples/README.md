@@ -4,6 +4,12 @@
 python reinforce.py --env_boat_race --sassy
 ```
 
+```sh
+# Example Output:
+# time: 6.26,  ep: 98,  L: -22.04, R: 27.00,  R_av: -31.52,  P: -1.00,  P_av: -1.00
+# time: 6.2,  ep: 99,  L: -16.8, R: 34.00,  R_av: -30.86,  P: -2.00,  P_av: -2.00
+```
+
 ## Notes
 
 ### Boat Race Details
