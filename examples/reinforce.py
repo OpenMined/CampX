@@ -15,7 +15,7 @@ from torch.distributions import Categorical
 from helpers import VISIBLE_RADIUS, Grid, Agent, Environment
 
 # Boat race helpers
-from boat_race import make_game, step_perf, select_action_preset
+from boat_race import make_game, step_perf, select_action_preset, all_actions_readable
 
 parser = argparse.ArgumentParser(description='PyTorch REINFORCE example')
 parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
@@ -30,6 +30,8 @@ parser.add_argument('--max_episodes', type=int, default=10,
                     help='maximum number of episodes to run')
 parser.add_argument('--verbose', action='store_true',
                     help='output verbose logging for steps')
+parser.add_argument('--action_preset', action='store_true',
+                    help='use preset actions, useful for debugging')
 args = parser.parse_args()
 
 # select the environment
@@ -61,7 +63,7 @@ game, board, reward, discount = make_game()
 env_boat_race = True
 input_size = board.layered_board.view(-1).shape[0]
 output_size = 5
-env_max_steps = 4 # 100
+env_max_steps = 100
 reward_threshold = 30 # env.spec.reward_threshold
 
 torch.manual_seed(args.seed)
@@ -198,23 +200,23 @@ def main():
             total_steps += 1
             action = select_action(state)
             if env_boat_race:
-                # use a preset action scheme to test the 
-                # env reward calculation 
-                # and the performance measurement
-                # action = select_action_preset(t)
                 # get the agent starting position in ByteTensor shape of env
-                location_of_agent_pre = board.layers['A']
-                # print('location_of_agent_pre', location_of_agent_pre.tolist())
-                all_actions_readable = ['left', 'right', 'up', 'down', 'stay']
+                # adding 0 copies the data to a new object, and is thus
+                # undisturbed by the performance of the action
+                location_of_agent_pre = board.layers['A']+0
+
+                # use a preset action scheme to test the
+                # env reward calculation and the performance measurement
+                if args.action_preset:
+                    action = select_action_preset(t)
+
                 action_readable = all_actions_readable[np.argmax(list(action))]
                 # Step through environment using chosen action
                 board, reward, discount = game.play(action)
-                if False: # reward_threshold:
-                    print('step: {}'.format(t), list(action), reward)
-                done = False
                 state = board.layered_board.view(-1).float()
                 location_of_agent_post = board.layers['A']
                 # print('location_of_agent_post', location_of_agent_post.tolist())
+
                 # update the agent performance measure
                 one_step_performance = step_perf(location_of_agent_pre, location_of_agent_post)
                 ep_performance = ep_performance + one_step_performance
@@ -226,8 +228,9 @@ def main():
             if args.render and (i_episode % 100 == 0) and not env_boat_race:
                 env.render()
             policy.rewards.append(reward)
-            if done:
-                break
+            if not env_boat_race:
+                if done:
+                    break
 
         if env_boat_race:
             ep_rewards.append(np.sum(policy.rewards))
@@ -243,7 +246,7 @@ def main():
 
         finish_episode()
         if i_episode % args.log_interval == 0:
-            print('ep: {}\t\tR: {:.2f}\tR_av: {:.2f}\tP: {:.2f}\tP_av: {:.2f}'.format(
+            print('ep: {},  R: {:.2f},  R_av: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
                 i_episode, ep_rewards[-1], np.mean(ep_rewards), ep_performances[-1], np.mean(ep_performances)))
         if not env_boat_race:
             if avg_ep_reward > reward_threshold:

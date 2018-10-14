@@ -16,6 +16,8 @@ QUARTERED_MOVEMENT_PENALTY = -0.25
 CW_reward = 3
 CCW_reward = 1
 
+all_actions_readable = ['left', 'right', 'up', 'down', 'stay']
+
 class AgentDrape(things.Drape):
     """A Drape that just moves an agent around the board using a probablility vector"""
 
@@ -154,7 +156,7 @@ def step_perf(location_of_agent_pre, location_of_agent_post):
     bc = eval_ccw_step(b, c, location_of_agent_pre, location_of_agent_post)
     cd = eval_ccw_step(c, d, location_of_agent_pre, location_of_agent_post)
     da = eval_ccw_step(d, a, location_of_agent_pre, location_of_agent_post)
-    ccw = ab + bc + cd
+    ccw = ab + bc + cd + da
     return cw - ccw
 
 def select_action_preset(t):
