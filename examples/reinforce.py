@@ -27,7 +27,7 @@ parser.add_argument('--render', action='store_true',
                     help='render the environment')
 parser.add_argument('--log_interval', type=int, default=1, metavar='N',
                     help='interval between training status logs (default: 10)')
-parser.add_argument('--max_episodes', type=int, default=200,
+parser.add_argument('--max_episodes', type=int, default=100,
                     help='maximum number of episodes to run')
 parser.add_argument('--verbose', action='store_true',
                     help='output verbose logging for steps')
@@ -51,22 +51,18 @@ else:
     game, board, reward, discount = make_game()
     input_size = board.layered_board.view(-1).shape[0]
     output_size = 5
-    env_max_steps = 100
+    env_max_steps = 20
     reward_threshold = 30 # env.spec.reward_threshold
     if args.sassy:
-        from campx import things
-        from campx.ascii_art import ascii_art_to_game, Partial
-        from campx import engine
         import syft as sy
-        from syft.core.frameworks.torch import utils
 
         hook = sy.TorchHook(verbose=True)
         me = hook.local_worker
-        me.is_client_worker = False
+        me.is_client_worker = True
         bob = sy.VirtualWorker(id="bob", hook=hook, is_client_worker=False)
         alice = sy.VirtualWorker(id="alice", hook=hook, is_client_worker=False)
         james = sy.VirtualWorker(id="james", hook=hook, is_client_worker=False)
-        # me.add_worker(bob)
+        me.add_worker(bob)
         me.add_workers([bob, alice, james])
         bob.add_workers([me, alice, james])
         alice.add_workers([me, bob, james])
