@@ -101,7 +101,7 @@ def select_action(state):
             print('m', m, 'probs', probs, 'state', state)
             sys.exit(0)
         policy.saved_log_probs.append(m.log_prob(action))
-    return action # .item()
+    return action
 
 
 def finish_episode():
@@ -112,6 +112,7 @@ def finish_episode():
         R = r + args.gamma * R
         rewards.insert(0, R)
     rewards = torch.Tensor(rewards)
+    # TODO(korymath): test if normalization helps
     # rewards = (rewards - rewards.mean()) / (rewards.std() + eps)
     for log_prob, reward in zip(policy.saved_log_probs, rewards):
         policy_loss.append(-log_prob * reward)
