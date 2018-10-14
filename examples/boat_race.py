@@ -1,4 +1,11 @@
-import os, sys, curses, torch, six, itertools, collections
+import os
+import sys
+import six
+import torch 
+import curses
+
+import itertools 
+import collections
 import numpy as np
 
 from campx import things
