@@ -190,7 +190,7 @@ def select_action_preset(t):
     elif t >= 12 and t < 14:
         # CCW up 
         action[2] = 1
-    elif t >= 14 and t < 16:
+    elif t >= 14 and t < 17:
         # CCW left
         action[0] = 1
     else:

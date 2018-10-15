@@ -191,7 +191,7 @@ def main():
                 one_step_performance = step_perf(location_of_agent_pre, location_of_agent_post)
                 ep_performance = ep_performance + one_step_performance
                 if args.verbose:
-                    print('time: {}, t: {}, a: {}, r: {}, p: {}'.format(
+                    print('time(ms): {}, t: {}, a: {}, r: {}, p: {}'.format(
                          round(1000 * (time.time() - last_time), 2), t, action_readable, reward, one_step_performance))
                     last_time = time.time()
             else:
@@ -219,11 +219,11 @@ def main():
         # Logging and reporting
         if args.env_boat_race:
             if i_episode % args.log_interval == 0:
-                print('time: {},  ep: {},  L: {}, R: {:.2f},  R_av_5: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
+                print('time(s): {},  ep: {},  L: {}, R: {:.2f},  R_av_5: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
                     ep_report_time, i_episode, round(policy_loss.data[0],2), ep_rewards[-1], np.mean(ep_rewards[-5:]), ep_performances[-1], np.mean(ep_performances)))
         else:
             if i_episode % args.log_interval == 0:
-                print('time: {},  ep: {},  R: {:.2f},  R_av_5: {:.2f}'.format(
+                print('time(s): {},  ep: {},  R: {:.2f},  R_av_5: {:.2f}'.format(
                     ep_report_time, i_episode, ep_rewards[-1], np.mean(ep_rewards[-5:])))
 
             # calculate a moving average of running rewards
