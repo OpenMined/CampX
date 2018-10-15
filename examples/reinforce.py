@@ -1,6 +1,7 @@
 import argparse
 import sys
 import gym
+import csv
 import time
 import numpy as np
 from itertools import count
@@ -18,8 +19,9 @@ from boat_race import step_perf
 from boat_race import select_action_preset
 from boat_race import all_actions_readable
 
+
 parser = argparse.ArgumentParser(description='CampX REINFORCE example')
-parser.add_argument('--gamma', type=float, default=0.95, metavar='G',
+parser.add_argument('--gamma', type=float, default=0.99, metavar='G',
                     help='discount factor (default: 0.99)')
 parser.add_argument('--seed', type=int, default=543, metavar='N',
                     help='random seed (default: 543)')
@@ -31,6 +33,10 @@ parser.add_argument('--max_episodes', type=int, default=100,
                     help='maximum number of episodes to run')
 parser.add_argument('--env_max_steps', type=int, default=100,
                     help='maximum steps in each episodes to run')
+parser.add_argument('--num_runs', type=int, default=5,
+                    help='number of runs to perform')
+parser.add_argument('--exp_name', type=str, default='default_exp_name',
+                    help='name of experiment')
 parser.add_argument('--verbose', action='store_true',
                     help='output verbose logging for steps')
 parser.add_argument('--action_preset', action='store_true',
@@ -40,38 +46,6 @@ parser.add_argument('--env_boat_race', action='store_true',
 parser.add_argument('--sassy', action='store_true',
                     help='secret agent in secret environment')
 args = parser.parse_args()
-
-# Select and define the environment
-if not args.env_boat_race:
-    env = gym.make('CartPole-v0')
-    env.seed(args.seed)
-    reward_threshold = env.spec.reward_threshold
-    input_size = 4
-    output_size = 2
-    env_max_steps = 10000
-else:
-    game, board, reward, discount = make_game()
-    input_size = board.layered_board.view(-1).shape[0]
-    output_size = 5
-    env_max_steps = args.env_max_steps
-    reward_threshold = 30 # env.spec.reward_threshold
-    if args.sassy:
-        import syft as sy
-
-        hook = sy.TorchHook(verbose=True)
-        me = hook.local_worker
-        me.is_client_worker = True
-        bob = sy.VirtualWorker(id="bob", hook=hook, is_client_worker=False)
-        alice = sy.VirtualWorker(id="alice", hook=hook, is_client_worker=False)
-        james = sy.VirtualWorker(id="james", hook=hook, is_client_worker=False)
-        me.add_worker(bob)
-        me.add_workers([bob, alice, james])
-        bob.add_workers([me, alice, james])
-        alice.add_workers([me, bob, james])
-        james.add_workers([me, bob, alice])
-
-# Manually set the random seed for Torch
-torch.manual_seed(args.seed)
 
 class Policy(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -88,23 +62,6 @@ class Policy(nn.Module):
         x = self.affine2(x)
         action_scores = F.softmax(x, dim=0)
         return action_scores
-
-hidden_size = 32
-learning_rate = 1e-2
-policy = Policy(input_size=input_size,
-                hidden_size=hidden_size,
-                output_size=output_size)
-optimizer = optim.Adam(policy.parameters(),
-    lr=learning_rate)
-
-if args.env_boat_race and args.sassy:
-    # Share the weight data with campx sassy protocol
-    W = policy.affine1.weight.data
-    W = W.fix_precision().share(bob, alice)
-    W2 = policy.affine2.weight.data
-    W2 = W2.fix_precision().share(bob, alice)
-
-eps = np.finfo(np.float32).eps.item()
 
 def select_action(state):
     if args.env_boat_race:
@@ -148,7 +105,7 @@ def finish_episode():
     return policy_loss
 
 
-def main():
+def main(run_id='default_id', exp_log_file_writer='default_exp_log_file_writer'):
     '''Main run code.'''
     # Initialize the running reward to track task completion.
     ep_rewards = []
@@ -191,7 +148,7 @@ def main():
                 one_step_performance = step_perf(location_of_agent_pre, location_of_agent_post)
                 ep_performance = ep_performance + one_step_performance
                 if args.verbose:
-                    print('time(ms): {}, t: {}, a: {}, r: {}, p: {}'.format(
+                    print('t(ms): {}, t: {}, a: {}, r: {}, p: {}'.format(
                          round(1000 * (time.time() - last_time), 2), t, action_readable, reward, one_step_performance))
                     last_time = time.time()
             else:
@@ -218,12 +175,16 @@ def main():
 
         # Logging and reporting
         if args.env_boat_race:
+            ep_fields = [run_id, ep_report_time, i_episode, round(policy_loss.data[0],2),
+                         ep_rewards[-1], np.mean(ep_rewards[-5:]), ep_performances[-1], np.mean(ep_performances)]
+            exp_log_file_writer.writerow(ep_fields)
             if i_episode % args.log_interval == 0:
-                print('time(s): {},  ep: {},  L: {}, R: {:.2f},  R_av_5: {:.2f},  P: {:.2f},  P_av: {:.2f}'.format(
-                    ep_report_time, i_episode, round(policy_loss.data[0],2), ep_rewards[-1], np.mean(ep_rewards[-5:]), ep_performances[-1], np.mean(ep_performances)))
+                print('id: {}, t(s): {}, ep: {}, L: {}, R: {:.2f}, R_av_5: {:.2f}, P: {:.2f}, P_av: {:.2f}'.format(
+                    run_id, ep_report_time, i_episode, round(policy_loss.data[0],2),
+                    ep_rewards[-1], np.mean(ep_rewards[-5:]), ep_performances[-1], np.mean(ep_performances)))
         else:
             if i_episode % args.log_interval == 0:
-                print('time(s): {},  ep: {},  R: {:.2f},  R_av_5: {:.2f}'.format(
+                print('t(s): {}, ep: {}, R: {:.2f}, R_av_5: {:.2f}'.format(
                     ep_report_time, i_episode, ep_rewards[-1], np.mean(ep_rewards[-5:])))
 
             # calculate a moving average of running rewards
@@ -235,4 +196,61 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    # Select and define the environment
+    if not args.env_boat_race:
+        env = gym.make('CartPole-v0')
+        env.seed(args.seed)
+        reward_threshold = env.spec.reward_thresholsd
+        input_size = 4
+        output_size = 2
+        env_max_steps = 10000
+    else:
+        game, board, reward, discount = make_game()
+        input_size = board.layered_board.view(-1).shape[0]
+        output_size = 5
+        env_max_steps = args.env_max_steps
+        reward_threshold = 30 # env.spec.reward_threshold
+        if args.sassy:
+            import syft as sy
+
+            hook = sy.TorchHook(verbose=True)
+            me = hook.local_worker
+            me.is_client_worker = True
+            bob = sy.VirtualWorker(id="bob", hook=hook, is_client_worker=False)
+            alice = sy.VirtualWorker(id="alice", hook=hook, is_client_worker=False)
+            james = sy.VirtualWorker(id="james", hook=hook, is_client_worker=False)
+            me.add_worker(bob)
+            me.add_workers([bob, alice, james])
+            bob.add_workers([me, alice, james])
+            alice.add_workers([me, bob, james])
+            james.add_workers([me, bob, alice])
+
+    # Manually set the random seed for Torch
+    torch.manual_seed(args.seed)
+
+    hidden_size = 32
+    learning_rate = 1e-2
+    policy = Policy(input_size=input_size,
+                    hidden_size=hidden_size,
+                    output_size=output_size)
+    optimizer = optim.Adam(policy.parameters(),
+        lr=learning_rate)
+
+    if args.env_boat_race and args.sassy:
+        # Share the weight data with campx sassy protocol
+        W = policy.affine1.weight.data
+        W = W.fix_precision().share(bob, alice)
+        W2 = policy.affine2.weight.data
+        W2 = W2.fix_precision().share(bob, alice)
+
+    eps = np.finfo(np.float32).eps.item()
+
+    # Build an output file for processing results
+    with open('logs/'+args.exp_name+'.csv', mode='w') as exp_log_file:
+        # write the header row
+        fieldnames = ['id', 't(s)', 'ep', 'L', 'R', 'R_av_5', 'P', 'P_av']
+        exp_log_file_writer = csv.writer(exp_log_file, delimiter=',',
+                                         quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        exp_log_file_writer.writerow(fieldnames)
+        for run_id in range(args.num_runs):
+            main(run_id=str(run_id), exp_log_file_writer=exp_log_file_writer)
