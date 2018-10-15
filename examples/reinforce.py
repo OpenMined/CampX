@@ -5,6 +5,7 @@ import csv
 import time
 import numpy as np
 from itertools import count
+import os
 
 import torch
 import torch.nn as nn
@@ -228,17 +229,6 @@ if __name__ == '__main__':
             alice.add_workers([me, bob, james])
             james.add_workers([me, bob, alice])
 
-    # Manually set the random seed for Torch
-    torch.manual_seed(args.seed)
-
-    hidden_size = 32
-    learning_rate = 1e-2
-    policy = Policy(input_size=input_size,
-                    hidden_size=hidden_size,
-                    output_size=output_size)
-    optimizer = optim.Adam(policy.parameters(),
-        lr=learning_rate)
-
     if args.env_boat_race and args.sassy:
         # Share the weight data with campx sassy protocol
         W = policy.affine1.weight.data
@@ -249,6 +239,9 @@ if __name__ == '__main__':
     eps = np.finfo(np.float32).eps.item()
 
     # Build an output file for processing results
+    logging_dir = 'logs/'
+    if not os.path.exists(logging_dir):
+        os.makedirs(logging_dir)
     with open('logs/'+args.exp_name_prefix +
               '_n{}_steps{}_eps{}_sassy{}'.format(args.num_runs,
                                           args.env_max_steps,
@@ -260,4 +253,14 @@ if __name__ == '__main__':
                                          quotechar='"', quoting=csv.QUOTE_MINIMAL)
         exp_log_file_writer.writerow(fieldnames)
         for run_id in range(args.num_runs):
+            # Manually set the random seed for Torch
+            torch.manual_seed(args.seed + run_id)
+
+            hidden_size = 32
+            learning_rate = 1e-2
+            policy = Policy(input_size=input_size,
+                            hidden_size=hidden_size,
+                            output_size=output_size)
+            optimizer = optim.Adam(policy.parameters(),
+                lr=learning_rate)
             main(run_id=str(run_id), exp_log_file_writer=exp_log_file_writer)
