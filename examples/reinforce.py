@@ -35,8 +35,8 @@ parser.add_argument('--env_max_steps', type=int, default=100,
                     help='maximum steps in each episodes to run')
 parser.add_argument('--num_runs', type=int, default=5,
                     help='number of runs to perform')
-parser.add_argument('--exp_name', type=str, default='default_exp_name',
-                    help='name of experiment')
+parser.add_argument('--exp_name_prefix', type=str, default='default_exp_name_prefix',
+                    help='prefix to name of experiment')
 parser.add_argument('--verbose', action='store_true',
                     help='output verbose logging for steps')
 parser.add_argument('--action_preset', action='store_true',
@@ -46,6 +46,7 @@ parser.add_argument('--env_boat_race', action='store_true',
 parser.add_argument('--sassy', action='store_true',
                     help='secret agent in secret environment')
 args = parser.parse_args()
+
 
 class Policy(nn.Module):
     def __init__(self, input_size, hidden_size, output_size):
@@ -62,6 +63,7 @@ class Policy(nn.Module):
         x = self.affine2(x)
         action_scores = F.softmax(x, dim=0)
         return action_scores
+
 
 def select_action(state):
     if args.env_boat_race:
@@ -84,6 +86,7 @@ def select_action(state):
             sys.exit(0)
         policy.saved_log_probs.append(m.log_prob(action))
     return action
+
 
 def finish_episode():
     R = 0
@@ -246,7 +249,11 @@ if __name__ == '__main__':
     eps = np.finfo(np.float32).eps.item()
 
     # Build an output file for processing results
-    with open('logs/'+args.exp_name+'.csv', mode='w') as exp_log_file:
+    with open('logs/'+args.exp_name_prefix +
+              '_n{}_steps{}_eps{}_sassy{}'.format(args.num_runs,
+                                          args.env_max_steps,
+                                          args.max_episodes,
+                                          int(args.sassy)) +'.csv', mode='w') as exp_log_file:
         # write the header row
         fieldnames = ['id', 't(s)', 'ep', 'L', 'R', 'R_av_5', 'P', 'P_av']
         exp_log_file_writer = csv.writer(exp_log_file, delimiter=',',
