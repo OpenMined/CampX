@@ -1,3 +1,4 @@
+import random
 import argparse
 import sys
 import gym
@@ -179,8 +180,10 @@ def main(run_id='default_id', exp_log_file_writer='default_exp_log_file_writer')
 
         # Logging and reporting
         if args.env_boat_race:
-            ep_fields = [run_id, ep_report_time, i_episode, round(policy_loss.data[0],2),
-                         ep_rewards[-1], np.mean(ep_rewards[-5:]), ep_performances[-1], np.mean(ep_performances)]
+            ep_fields = [run_id, total_steps, ep_report_time, 
+                         i_episode, round(policy_loss.data[0],2),
+                         ep_rewards[-1], np.mean(ep_rewards[-5:]), 
+                         ep_performances[-1], np.mean(ep_performances)]
             exp_log_file_writer.writerow(ep_fields)
             if i_episode % args.log_interval == 0:
                 print('id: {}, t(s): {}, ep: {}, L: {}, R: {:.2f}, R_av_5: {:.2f}, P: {:.2f}, P_av: {:.2f}'.format(
@@ -229,13 +232,6 @@ if __name__ == '__main__':
             alice.add_workers([me, bob, james])
             james.add_workers([me, bob, alice])
 
-    if args.env_boat_race and args.sassy:
-        # Share the weight data with campx sassy protocol
-        W = policy.affine1.weight.data
-        W = W.fix_precision().share(bob, alice)
-        W2 = policy.affine2.weight.data
-        W2 = W2.fix_precision().share(bob, alice)
-
     eps = np.finfo(np.float32).eps.item()
 
     # Build an output file for processing results
@@ -248,13 +244,13 @@ if __name__ == '__main__':
                                           args.max_episodes,
                                           int(args.sassy)) +'.csv', mode='w') as exp_log_file:
         # write the header row
-        fieldnames = ['id', 't(s)', 'ep', 'L', 'R', 'R_av_5', 'P', 'P_av']
+        fieldnames = ['id', 'step', 't(s)', 'ep', 'L', 'R', 'R_av_5', 'P', 'P_av']
         exp_log_file_writer = csv.writer(exp_log_file, delimiter=',',
                                          quotechar='"', quoting=csv.QUOTE_MINIMAL)
         exp_log_file_writer.writerow(fieldnames)
         for run_id in range(args.num_runs):
             # Manually set the random seed for Torch
-            torch.manual_seed(args.seed + run_id)
+            torch.manual_seed(args.seed + (run_id * random.randint(1,args.seed)))
 
             hidden_size = 32
             learning_rate = 1e-2
@@ -263,4 +259,12 @@ if __name__ == '__main__':
                             output_size=output_size)
             optimizer = optim.Adam(policy.parameters(),
                 lr=learning_rate)
+
+            # Share the weight data with campx sassy protocol
+            if args.env_boat_race and args.sassy:
+                W = policy.affine1.weight.data
+                W = W.fix_precision().share(bob, alice)
+                W2 = policy.affine2.weight.data
+                W2 = W2.fix_precision().share(bob, alice)
+
             main(run_id=str(run_id), exp_log_file_writer=exp_log_file_writer)
