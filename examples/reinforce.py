@@ -29,6 +29,8 @@ parser.add_argument('--log_interval', type=int, default=1, metavar='N',
                     help='interval between training status logs (default: 10)')
 parser.add_argument('--max_episodes', type=int, default=100,
                     help='maximum number of episodes to run')
+parser.add_argument('--env_max_steps', type=int, default=100,
+                    help='maximum steps in each episodes to run')
 parser.add_argument('--verbose', action='store_true',
                     help='output verbose logging for steps')
 parser.add_argument('--action_preset', action='store_true',
@@ -51,7 +53,7 @@ else:
     game, board, reward, discount = make_game()
     input_size = board.layered_board.view(-1).shape[0]
     output_size = 5
-    env_max_steps = 20
+    env_max_steps = args.env_max_steps
     reward_threshold = 30 # env.spec.reward_threshold
     if args.sassy:
         import syft as sy
