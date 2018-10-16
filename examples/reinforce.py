@@ -239,9 +239,10 @@ if __name__ == '__main__':
     if not os.path.exists(logging_dir):
         os.makedirs(logging_dir)
     with open('logs/'+args.exp_name_prefix +
-              '_n{}_steps{}_eps{}_sassy{}'.format(args.num_runs,
+              '_n{}_steps{}_eps{}_gamma{}_sassy{}'.format(args.num_runs,
                                           args.env_max_steps,
                                           args.max_episodes,
+                                          args.gamma,
                                           int(args.sassy)) +'.csv', mode='w') as exp_log_file:
         # write the header row
         fieldnames = ['id', 'step', 't(s)', 'ep', 'L', 'R', 'R_av_5', 'P', 'P_av']

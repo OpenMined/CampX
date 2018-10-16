@@ -2,6 +2,13 @@
 
 ```sh
 python reinforce.py --env_boat_race --sassy
+
+# good sassy experiment
+# note more logging and less runs due to the increased length of each step
+python reinforce.py --env_boat_race --env_max_steps=100 --max_episodes=300 --log_interval=1 --seed=543 --exp_name='20181016' --num_runs=2 --sassy --gamma=0.95
+
+# good non-sassy experiment
+python reinforce.py --env_boat_race --env_max_steps=100 --max_episodes=300 --log_interval=10 --seed=543 --exp_name='20181016' --num_runs=25 --gamma=0.95
 ```
 
 ```sh
