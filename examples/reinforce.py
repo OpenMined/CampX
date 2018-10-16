@@ -110,7 +110,7 @@ def finish_episode():
     return policy_loss
 
 
-def main(run_id='default_id', exp_log_file_writer='default_exp_log_file_writer'):
+def main(a, b, c, d, run_id='default_id', exp_log_file_writer='default_exp_log_file_writer'):
     '''Main run code.'''
     # Initialize the running reward to track task completion.
     ep_rewards = []
@@ -138,7 +138,7 @@ def main(run_id='default_id', exp_log_file_writer='default_exp_log_file_writer')
                 # get the agent starting position in ByteTensor shape of env
                 # adding 0 copies the data to a new object, and is thus
                 # undisturbed by the performance of the action
-                location_of_agent_pre = board.layers['A']+0
+                location_of_agent_pre = (board.layers['A']+0).long()
                 # use a preset action scheme to test the
                 # env reward calculation and the performance measurement
                 if args.action_preset:
@@ -147,10 +147,10 @@ def main(run_id='default_id', exp_log_file_writer='default_exp_log_file_writer')
                 # Step through environment using chosen action
                 board, reward, discount = game.play(action)
                 state = board.layered_board.view(-1).float()
-                location_of_agent_post = board.layers['A']
+                location_of_agent_post = board.layers['A'].long()
                 # print('location_of_agent_post', location_of_agent_post.tolist())
                 # update the agent performance measure
-                one_step_performance = step_perf(location_of_agent_pre, location_of_agent_post)
+                one_step_performance = step_perf(a, b, c, d, location_of_agent_pre, location_of_agent_post)
                 ep_performance = ep_performance + one_step_performance
                 if args.verbose:
                     print('t(ms): {}, t: {}, a: {}, r: {}, p: {}'.format(
@@ -221,16 +221,43 @@ if __name__ == '__main__':
             import syft as sy
 
             hook = sy.TorchHook(verbose=True)
-            me = hook.local_worker
-            me.is_client_worker = True
+            # me = hook.local_worker
+            # me.is_client_worker = True
             bob = sy.VirtualWorker(id="bob", hook=hook, is_client_worker=False)
             alice = sy.VirtualWorker(id="alice", hook=hook, is_client_worker=False)
-            james = sy.VirtualWorker(id="james", hook=hook, is_client_worker=False)
-            me.add_worker(bob)
-            me.add_workers([bob, alice, james])
-            bob.add_workers([me, alice, james])
-            alice.add_workers([me, bob, james])
-            james.add_workers([me, bob, alice])
+            # james = sy.VirtualWorker(id="james", hook=hook, is_client_worker=False)
+            # me.add_worker(bob)
+            # me.add_workers([bob, alice])
+            bob.add_workers([alice])
+            alice.add_workers([bob])
+            # james.add_workers([me, bob, alice])
+
+            # build shared views for the board
+            # named a,b,c,d
+            a = torch.zeros(5,5).long()
+            a[1,2] = 1
+            a[3,2] = 1
+            # print('a', a)
+
+            b = torch.zeros(5,5).long()
+            b[1,3] = 1
+            b[3,1] = 1
+            # print('b', b)
+
+            c = a.t()
+            # print('c', c)
+
+            d = torch.zeros(5,5).long()
+            d[1,1] = 1
+            d[3,3] = 1
+            # print('d', d)
+
+            # share the environment
+            game.share(bob, alice)
+            a = a.share(bob, alice)
+            b = b.share(bob, alice)
+            c = c.share(bob, alice)
+            d = d.share(bob, alice)
 
     eps = np.finfo(np.float32).eps.item()
 
@@ -268,4 +295,4 @@ if __name__ == '__main__':
                 W2 = policy.affine2.weight.data
                 W2 = W2.fix_precision().share(bob, alice)
 
-            main(run_id=str(run_id), exp_log_file_writer=exp_log_file_writer)
+            main(a=a, b=b, c=c, d=d, run_id=str(run_id), exp_log_file_writer=exp_log_file_writer)

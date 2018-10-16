@@ -114,43 +114,24 @@ def make_game():
     board, reward, discount = game.its_showtime()
     return game, board, reward, discount
 
-# build shared views for the board
-# named a,b,c,d
-a = torch.zeros(5,5).byte()
-a[1,2] = 1
-a[3,2] = 1
-# print('a', a)
-
-b = torch.zeros(5,5).byte()
-b[1,3] = 1
-b[3,1] = 1
-# print('b', b)
-
-c = a.t()
-# print('c', c)
-
-d = torch.zeros(5,5).byte()
-d[1,1] = 1
-d[3,3] = 1
-# print('d', d)
-
-def eval_cw_step(a, b, location_of_agent_pre, location_of_agent_post):
+def eval_cw_step(share_1, share_2, location_of_agent_pre, location_of_agent_post):
     """Evaluating a single clockwise step."""
-    apa = a * location_of_agent_pre
+    print(type(share_1), type(location_of_agent_pre))
+    apa = share_1 * location_of_agent_pre
     apa = (apa[1] + apa[2] + apa[3]).sum()
-    ba = b * location_of_agent_post
+    ba = share_2 * location_of_agent_post
     ba = (ba[1] + ba[2] + ba[3]).sum()
     return apa * ba
 
-def eval_ccw_step(a, b, location_of_agent_pre, location_of_agent_post):
+def eval_ccw_step(share_1, share_2, location_of_agent_pre, location_of_agent_post):
     """Evaluating a single counterclockwise step."""
-    apa = b * location_of_agent_pre
+    apa = share_2 * location_of_agent_pre
     apa = (apa[1] + apa[2] + apa[3]).sum()
-    ba = a * location_of_agent_post
+    ba = share_1 * location_of_agent_post
     ba = (ba[1] + ba[2] + ba[3]).sum()
     return apa * ba
 
-def step_perf(location_of_agent_pre, location_of_agent_post):
+def step_perf(a, b, c, d, location_of_agent_pre, location_of_agent_post):
     # Evaluate for the clockwise step
     ab = eval_cw_step(a, b, location_of_agent_pre, location_of_agent_post)
     bc = eval_cw_step(b, c, location_of_agent_pre, location_of_agent_post)
