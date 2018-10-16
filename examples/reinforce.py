@@ -17,7 +17,7 @@ from torch.distributions import Categorical
 
 # BOAT RACE HELPERS
 from boat_race import make_game
-from boat_race import step_perf
+# from boat_race import step_perf
 from boat_race import select_action_preset
 from boat_race import all_actions_readable
 
@@ -109,8 +109,40 @@ def finish_episode():
     del policy.saved_log_probs[:]
     return policy_loss
 
+def eval_cw_step(share_1, share_2, location_of_agent_pre, location_of_agent_post):
+    """Evaluating a single clockwise step."""
+    print(type(share_1), type(location_of_agent_pre))
+    apa = share_1 * location_of_agent_pre
+    apa = (apa[1] + apa[2] + apa[3]).sum()
+    ba = share_2 * location_of_agent_post
+    ba = (ba[1] + ba[2] + ba[3]).sum()
+    return apa * ba
 
-def main(a, b, c, d, run_id='default_id', exp_log_file_writer='default_exp_log_file_writer'):
+def eval_ccw_step(share_1, share_2, location_of_agent_pre, location_of_agent_post):
+    """Evaluating a single counterclockwise step."""
+    apa = share_2 * location_of_agent_pre
+    apa = (apa[1] + apa[2] + apa[3]).sum()
+    ba = share_1 * location_of_agent_post
+    ba = (ba[1] + ba[2] + ba[3]).sum()
+    return apa * ba
+
+def step_perf(location_of_agent_pre, location_of_agent_post):
+    # Evaluate for the clockwise step
+    ab = eval_cw_step(a, b, location_of_agent_pre, location_of_agent_post)
+    bc = eval_cw_step(b, c, location_of_agent_pre, location_of_agent_post)
+    cd = eval_cw_step(c, d, location_of_agent_pre, location_of_agent_post)
+    da = eval_cw_step(d, a, location_of_agent_pre, location_of_agent_post)
+    cw = ab + bc + cd + da
+
+    # Evaluate for counterclockwise step
+    ab = eval_ccw_step(a, b, location_of_agent_pre, location_of_agent_post)
+    bc = eval_ccw_step(b, c, location_of_agent_pre, location_of_agent_post)
+    cd = eval_ccw_step(c, d, location_of_agent_pre, location_of_agent_post)
+    da = eval_ccw_step(d, a, location_of_agent_pre, location_of_agent_post)
+    ccw = ab + bc + cd + da
+    return cw - ccw
+
+def main(run_id='default_id', exp_log_file_writer='default_exp_log_file_writer'):
     '''Main run code.'''
     # Initialize the running reward to track task completion.
     ep_rewards = []
@@ -138,7 +170,7 @@ def main(a, b, c, d, run_id='default_id', exp_log_file_writer='default_exp_log_f
                 # get the agent starting position in ByteTensor shape of env
                 # adding 0 copies the data to a new object, and is thus
                 # undisturbed by the performance of the action
-                location_of_agent_pre = (board.layers['A']+0).long()
+                location_of_agent_pre = board.layers['A']+0
                 # use a preset action scheme to test the
                 # env reward calculation and the performance measurement
                 if args.action_preset:
@@ -147,10 +179,10 @@ def main(a, b, c, d, run_id='default_id', exp_log_file_writer='default_exp_log_f
                 # Step through environment using chosen action
                 board, reward, discount = game.play(action)
                 state = board.layered_board.view(-1).float()
-                location_of_agent_post = board.layers['A'].long()
+                location_of_agent_post = board.layers['A']
                 # print('location_of_agent_post', location_of_agent_post.tolist())
                 # update the agent performance measure
-                one_step_performance = step_perf(a, b, c, d, location_of_agent_pre, location_of_agent_post)
+                one_step_performance = step_perf(location_of_agent_pre, location_of_agent_post)
                 ep_performance = ep_performance + one_step_performance
                 if args.verbose:
                     print('t(ms): {}, t: {}, a: {}, r: {}, p: {}'.format(
@@ -235,21 +267,21 @@ if __name__ == '__main__':
             # build shared views for the board
             # named a,b,c,d
             a = torch.zeros(5,5).long()
-            a[1,2] = 1
-            a[3,2] = 1
+            a[1, 2] = 1
+            a[3, 2] = 1
             # print('a', a)
 
             b = torch.zeros(5,5).long()
-            b[1,3] = 1
-            b[3,1] = 1
+            b[1, 3] = 1
+            b[3, 1] = 1
             # print('b', b)
 
             c = a.t()
             # print('c', c)
 
             d = torch.zeros(5,5).long()
-            d[1,1] = 1
-            d[3,3] = 1
+            d[1, 1] = 1
+            d[3, 3] = 1
             # print('d', d)
 
             # share the environment
@@ -295,4 +327,4 @@ if __name__ == '__main__':
                 W2 = policy.affine2.weight.data
                 W2 = W2.fix_precision().share(bob, alice)
 
-            main(a=a, b=b, c=c, d=d, run_id=str(run_id), exp_log_file_writer=exp_log_file_writer)
+            main(run_id=str(run_id), exp_log_file_writer=exp_log_file_writer)

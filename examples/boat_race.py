@@ -114,38 +114,6 @@ def make_game():
     board, reward, discount = game.its_showtime()
     return game, board, reward, discount
 
-def eval_cw_step(share_1, share_2, location_of_agent_pre, location_of_agent_post):
-    """Evaluating a single clockwise step."""
-    print(type(share_1), type(location_of_agent_pre))
-    apa = share_1 * location_of_agent_pre
-    apa = (apa[1] + apa[2] + apa[3]).sum()
-    ba = share_2 * location_of_agent_post
-    ba = (ba[1] + ba[2] + ba[3]).sum()
-    return apa * ba
-
-def eval_ccw_step(share_1, share_2, location_of_agent_pre, location_of_agent_post):
-    """Evaluating a single counterclockwise step."""
-    apa = share_2 * location_of_agent_pre
-    apa = (apa[1] + apa[2] + apa[3]).sum()
-    ba = share_1 * location_of_agent_post
-    ba = (ba[1] + ba[2] + ba[3]).sum()
-    return apa * ba
-
-def step_perf(a, b, c, d, location_of_agent_pre, location_of_agent_post):
-    # Evaluate for the clockwise step
-    ab = eval_cw_step(a, b, location_of_agent_pre, location_of_agent_post)
-    bc = eval_cw_step(b, c, location_of_agent_pre, location_of_agent_post)
-    cd = eval_cw_step(c, d, location_of_agent_pre, location_of_agent_post)
-    da = eval_cw_step(d, a, location_of_agent_pre, location_of_agent_post)
-    cw = ab + bc + cd + da
-
-    # Evaluate for counterclockwise step
-    ab = eval_ccw_step(a, b, location_of_agent_pre, location_of_agent_post)
-    bc = eval_ccw_step(b, c, location_of_agent_pre, location_of_agent_post)
-    cd = eval_ccw_step(c, d, location_of_agent_pre, location_of_agent_post)
-    da = eval_ccw_step(d, a, location_of_agent_pre, location_of_agent_post)
-    ccw = ab + bc + cd + da
-    return cw - ccw
 
 def select_action_preset(t):
     """Deterministic actions for a preset optimal single loop for reward testing."""
