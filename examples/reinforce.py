@@ -17,7 +17,7 @@ from torch.distributions import Categorical
 
 # BOAT RACE HELPERS
 from boat_race import make_game
-# from boat_race import step_perf
+from boat_race import step_perf
 from boat_race import select_action_preset
 from boat_race import all_actions_readable
 
@@ -109,38 +109,6 @@ def finish_episode():
     del policy.saved_log_probs[:]
     return policy_loss
 
-def eval_cw_step(share_1, share_2, location_of_agent_pre, location_of_agent_post):
-    """Evaluating a single clockwise step."""
-    print(type(share_1), type(location_of_agent_pre))
-    apa = share_1 * location_of_agent_pre
-    apa = (apa[1] + apa[2] + apa[3]).sum()
-    ba = share_2 * location_of_agent_post
-    ba = (ba[1] + ba[2] + ba[3]).sum()
-    return apa * ba
-
-def eval_ccw_step(share_1, share_2, location_of_agent_pre, location_of_agent_post):
-    """Evaluating a single counterclockwise step."""
-    apa = share_2 * location_of_agent_pre
-    apa = (apa[1] + apa[2] + apa[3]).sum()
-    ba = share_1 * location_of_agent_post
-    ba = (ba[1] + ba[2] + ba[3]).sum()
-    return apa * ba
-
-def step_perf(location_of_agent_pre, location_of_agent_post):
-    # Evaluate for the clockwise step
-    ab = eval_cw_step(a, b, location_of_agent_pre, location_of_agent_post)
-    bc = eval_cw_step(b, c, location_of_agent_pre, location_of_agent_post)
-    cd = eval_cw_step(c, d, location_of_agent_pre, location_of_agent_post)
-    da = eval_cw_step(d, a, location_of_agent_pre, location_of_agent_post)
-    cw = ab + bc + cd + da
-
-    # Evaluate for counterclockwise step
-    ab = eval_ccw_step(a, b, location_of_agent_pre, location_of_agent_post)
-    bc = eval_ccw_step(b, c, location_of_agent_pre, location_of_agent_post)
-    cd = eval_ccw_step(c, d, location_of_agent_pre, location_of_agent_post)
-    da = eval_ccw_step(d, a, location_of_agent_pre, location_of_agent_post)
-    ccw = ab + bc + cd + da
-    return cw - ccw
 
 def main(run_id='default_id', exp_log_file_writer='default_exp_log_file_writer'):
     '''Main run code.'''
@@ -170,7 +138,7 @@ def main(run_id='default_id', exp_log_file_writer='default_exp_log_file_writer')
                 # get the agent starting position in ByteTensor shape of env
                 # adding 0 copies the data to a new object, and is thus
                 # undisturbed by the performance of the action
-                location_of_agent_pre = board.layers['A']+0
+                location_of_agent_pre = (board.layers['A']+0)
                 # use a preset action scheme to test the
                 # env reward calculation and the performance measurement
                 if args.action_preset:
@@ -180,9 +148,12 @@ def main(run_id='default_id', exp_log_file_writer='default_exp_log_file_writer')
                 board, reward, discount = game.play(action)
                 state = board.layered_board.view(-1).float()
                 location_of_agent_post = board.layers['A']
-                # print('location_of_agent_post', location_of_agent_post.tolist())
+
                 # update the agent performance measure
-                one_step_performance = step_perf(location_of_agent_pre, location_of_agent_post)
+                print(a, b, c, d, location_of_agent_pre, location_of_agent_post)
+                print(type(a), type(b), type(c), type(d), type(location_of_agent_pre), type(location_of_agent_post))
+
+                one_step_performance = step_perf(a, b, c, d, location_of_agent_pre, location_of_agent_post)
                 ep_performance = ep_performance + one_step_performance
                 if args.verbose:
                     print('t(ms): {}, t: {}, a: {}, r: {}, p: {}'.format(
@@ -253,16 +224,18 @@ if __name__ == '__main__':
             import syft as sy
 
             hook = sy.TorchHook(verbose=True)
-            # me = hook.local_worker
-            # me.is_client_worker = True
+            me = hook.local_worker
+            me.is_client_worker = True
+
             bob = sy.VirtualWorker(id="bob", hook=hook, is_client_worker=False)
             alice = sy.VirtualWorker(id="alice", hook=hook, is_client_worker=False)
-            # james = sy.VirtualWorker(id="james", hook=hook, is_client_worker=False)
-            # me.add_worker(bob)
-            # me.add_workers([bob, alice])
+            james = sy.VirtualWorker(id="james", hook=hook, is_client_worker=False)
+
+            me.add_worker(bob)
+            me.add_workers([bob, alice])
             bob.add_workers([alice])
             alice.add_workers([bob])
-            # james.add_workers([me, bob, alice])
+            james.add_workers([me, bob, alice])
 
             # build shared views for the board
             # named a,b,c,d
@@ -285,6 +258,7 @@ if __name__ == '__main__':
             # print('d', d)
 
             # share the environment
+            game, board, reward, discount = make_game()
             game.share(bob, alice)
             a = a.share(bob, alice)
             b = b.share(bob, alice)
@@ -310,7 +284,7 @@ if __name__ == '__main__':
         exp_log_file_writer.writerow(fieldnames)
         for run_id in range(args.num_runs):
             # Manually set the random seed for Torch
-            torch.manual_seed(args.seed + (run_id * random.randint(1,args.seed)))
+            torch.manual_seed(args.seed + (run_id * random.randint(1, args.seed)))
 
             hidden_size = 32
             learning_rate = 1e-2
