@@ -210,7 +210,7 @@ if __name__ == '__main__':
     if not args.env_boat_race:
         env = gym.make('CartPole-v0')
         env.seed(args.seed)
-        reward_threshold = env.spec.reward_thresholsd
+        reward_threshold = env.spec.reward_threshold
         input_size = 4
         output_size = 2
         env_max_steps = 10000
